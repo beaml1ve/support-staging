@@ -1,0 +1,99 @@
+{
+  "mcpServers": {
+    "redis-bds": {
+      "command": "redis-cli",
+      "args": [
+        "-h", "10.128.0.21",
+        "-p", "6379"
+      ],
+      "description": "Redis BDS (Beam Data Store) server connection",
+      "env": {
+        "REDIS_HOST": "10.128.0.21",
+        "REDIS_PORT": "6379"
+      }
+    }
+  },
+  "stagingArchitecture": {
+    "description": "Staging environment consists of platform services and on services",
+    "components": {
+      "platformServices": {
+        "description": "Core platform infrastructure services",
+        "deployment": "Running on a single Linux server",
+        "services": {
+          "apache2": "Web server",
+          "postgresql": "Database server",
+          "redis_bds": {
+            "description": "BDS (Beam Data Store) HA with sentinels",
+            "routing": {
+              "script": "/opt/redis-router/redis-router.sh",
+              "starter": "/opt/redis-router/start.sh",
+              "function": "Subscribes to redis-sentinels pub/sub and sets firewall rules to forward port 6379 to current master",
+              "operationalChecks": {
+                "processCheck": "Verify redis-router script is running in background",
+                "firewallCheck": "Verify firewall forwards port 6379 to current Redis BDS master"
+              },
+              "troubleshooting": {
+                "commonError": "Services receiving Redis instance readonly error",
+                "cause": "Failover changed Redis BDS master with sentinel supervision, but redis-router script not following failover",
+                "manualRecovery": {
+                  "steps": [
+                    "Set manually the proper instance firewall forwarding",
+                    "Kill the redis-router process",
+                    "Start redis-router using /opt/redis-router/start.sh script"
+                  ]
+                }
+              }
+            }
+          },
+          "redis_bull": "Bull queue HA with sentinels",
+          "haproxy": "Load balancer managing redis-bull HA",
+          "redis_log": "Log storage (standalone)",
+          "mosquitto": "MQTT broker",
+          "tile38": "Geofencing service",
+          "prometheus_exporters": "Metrics exporters"
+        }
+      },
+      "onServices": {
+        "description": "Microservices (also called 'on' product services or beam services)",
+        "technology": "Node.js services",
+        "processManager": "PM2",
+        "dependencies": "Require all platform services in healthy state",
+        "deployment": {
+          "source": "beamdevlive GitHub repository",
+          "location": "/var/www/beamdevlive",
+          "structure": "Each service deployed in its own folder"
+        },
+        "managementScripts": {
+          "location": "pm2-restart folder",
+          "description": "Scripts helping in restarting the microservices"
+        }
+      }
+    }
+  },
+  "bdsConfig": {
+    "ecosystem": "beamdevlive",
+    "keyFormat": "ecosystem:objectType:objectId:serviceId",
+    "searchIndexes": {
+      "user_alternativeId": "beamdevlive:user:alternativeId_29"
+    },
+    "objectTypes": {
+      "user": {
+        "description": "User objects with alternativeIdValues field",
+        "searchFields": ["alternativeIdValues"]
+      },
+      "connection": {
+        "description": "Connection objects referencing user and device objectTypes",
+        "relationships": ["user", "device"]
+      },
+      "device": {
+        "description": "Device objects for authenticated connections"
+      }
+    }
+  },
+  "commonQueries": {
+    "searchUserByEmail": {
+      "command": "FT.SEARCH",
+      "template": "FT.SEARCH \"beamdevlive:user:alternativeId_29\" \"@alternativeIdValues:{{{email}}}\""
+    }
+  }
+}
