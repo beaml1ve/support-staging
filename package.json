@@ -1,0 +1,42 @@
+{
+  "name": "support-staging-monorepo",
+  "version": "1.0.0",
+  "description": "Support staging environment monorepo with platform-specific workspaces",
+  "private": true,
+  "workspaces": [
+    "platforms/*"
+  ],
+  "scripts": {
+    "install:all": "npm install",
+    "clean": "npm run clean --workspaces",
+    "build": "npm run build --workspaces",
+    "test": "npm test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "set-context": "echo '💡 Use: source scripts/set-context.sh <context>' && echo '📋 This will set context, change directory, and npm install' && echo '💡 Use: source scripts/set-context.sh (no args)' && echo '📋 This will restore monorepo root configuration'",
+    "context-status": "node scripts/unset-context.js status",
+    "protect-rules": "node scripts/protect-rules.js protect",
+    "unprotect-rules": "node scripts/protect-rules.js unprotect",
+    "rules-status": "node scripts/protect-rules.js status"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/beaml1ve/support-staging.git"
+  },
+  "keywords": [
+    "support",
+    "staging",
+    "monorepo",
+    "platform",
+    "infrastructure"
+  ],
+  "author": "Beam Live Support Team",
+  "license": "MIT"
+}

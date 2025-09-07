@@ -1,3 +1,13 @@
+# ARCHIVED SESSION RULES
+# Session closed on: 2025-09-07T09:27:09.666Z
+# These rules were active during the session and are preserved for reference
+# Session ID: 2025-09-07_09-26-46_test-new-chat-feature
+
+# Session-Specific Rules
+# This file contains rules active during this support session
+# Original platform rules copied and can be modified for this session context
+# Session ID: 2025-09-07_09-26-46_test-new-chat-feature
+
 # Support Staging Monorepo Rules
 
 ## Monorepo Structure
@@ -5,26 +15,6 @@
 This is an npm workspace-based monorepo for support staging environments. Each platform has its own workspace with specific configurations and tools.
 
 ## Core Constraints and Principles
-
-
-### 0. **CRITICAL: Context Enforcement Rule**
-- **MANDATORY**: No operations allowed in root context
-- **REQUIREMENT**: Must set platform context before any work
-- **Enforcement**: All support work must be done within a platform context
-- **Commands Allowed in Root**:
-  - `source scripts/set-context.sh <platform>` - Set platform context
-  - `source scripts/context-aliases.sh` - Load context aliases
-  - `npm run context-status` - Check current context
-  - `npm run rules-status` - Check rules protection status
-  - `npm run protect-rules <target>` - Protect rules
-  - `npm run unprotect-rules <target>` - Unprotect rules
-  - Git operations (`git add`, `git commit`, `git push`)
-- **REJECTED Operations in Root**:
-  - Any platform-specific work
-  - Any support operations
-  - Any service management
-  - Any troubleshooting activities
-- **Error Message**: "❌ CONTEXT REQUIRED: Use 'source scripts/set-context.sh <platform>' to set platform context before performing any operations"
 
 ### 1. **Rules Protection System**
 - **CRITICAL**: Root and platform .cursorrules files are protected by default
@@ -190,9 +180,6 @@ session-logs/YYYY-MM-DD_HH-MM-SS_session-name/
 
 ## Development Workflow
 
-
-**⚠️ CRITICAL: All platform work must be done within a platform context. No operations allowed in root context.**
-
 ### Working with Platforms:
 1. **Set Context**: Use `source scripts/set-context.sh <platform>` to activate platform-specific configuration and navigate to workspace
 2. **Open Session**: Use `npm run open-session <session-name>` for all support work
@@ -212,8 +199,6 @@ git push origin main
 ```
 
 ## Best Practices
-
-0. **Context Enforcement**: Never perform operations in root context - always set platform context first
 
 1. **Platform Isolation**: Each platform workspace is self-contained
 2. **Context Switching**: Always use context system for platform-specific work

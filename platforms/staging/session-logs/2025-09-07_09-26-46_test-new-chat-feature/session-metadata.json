@@ -1,0 +1,18 @@
+{
+  "sessionId": "2025-09-07_09-26-46_test-new-chat-feature",
+  "sessionName": "test-new-chat-feature",
+  "platform": "staging",
+  "startTime": "2025-09-07T09:26:46.033Z",
+  "endTime": "2025-09-07T09:27:09.664Z",
+  "status": "closed",
+  "objective": "test-new-chat-feature",
+  "files": {
+    "rules": ".cursorrules",
+    "notes": "session-notes.md",
+    "chatHistory": "chat-history.md",
+    "summary": "session-summary.md"
+  },
+  "tags": [],
+  "participants": [],
+  "duration": "0m"
+}

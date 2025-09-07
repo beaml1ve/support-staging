@@ -1,0 +1,209 @@
+# Support Staging Monorepo Rules
+
+## Monorepo Structure
+
+This is an npm workspace-based monorepo for support staging environments. Each platform has its own workspace with specific configurations and tools.
+
+### Workspace Organization
+```
+support-staging/                 # Root monorepo
+├── package.json                # Root package.json with workspaces config
+├── .cursor/                    # Root MCP settings
+│   └── mcp_settings.json      # Monorepo-wide MCP configuration
+├── .cursorrules               # This file - monorepo rules
+└── platforms/                 # Platform-specific workspaces
+    └── staging/               # Staging platform workspace
+        ├── package.json       # Workspace-specific package.json
+        ├── .cursor/           # Platform-specific MCP settings
+        │   └── mcp_settings.json
+        ├── .cursorrules       # Platform-specific rules
+        ├── session-logs/      # Support session documentation
+        ├── pm2-restart/       # PM2 management scripts
+        └── *.md, *.sh         # Platform-specific files
+```
+
+### Platform Workspaces
+
+#### Available Platforms:
+- **platforms/staging**: Staging environment (beamdevlive ecosystem)
+  - Redis BDS: 10.128.0.21:6379
+  - Platform services: Apache2, PostgreSQL, Redis HA, Mosquitto, Tile38
+  - Microservices: 260+ Node.js services managed by PM2
+
+### Workspace Commands
+
+#### Root Level Commands:
+```bash
+# Install all workspace dependencies
+npm run install:all
+
+# Run commands across all workspaces
+npm run build --workspaces
+npm run test --workspaces
+npm run lint --workspaces
+
+# Clean all workspaces
+npm run clean --workspaces
+```
+
+#### Platform-Specific Work:
+```bash
+# Set context and navigate to specific platform (RECOMMENDED)
+source scripts/set-context.sh staging
+
+# Or load aliases first, then use short commands
+source scripts/context-aliases.sh
+set-context staging
+
+# Return to monorepo root
+unset-context
+```
+
+### MCP Configuration
+
+#### Root MCP Settings:
+- **File**: `.cursor/mcp_settings.json`
+- **Purpose**: Monorepo-wide configuration and platform routing
+- **Servers**: Aggregated MCP servers from all platforms
+
+#### Platform MCP Settings:
+- **File**: `platforms/{platform}/.cursor/mcp_settings.json`
+- **Purpose**: Platform-specific Redis connections and configurations
+- **Scope**: Limited to that platform's infrastructure
+
+### Rules and Documentation
+
+#### Root Rules:
+- **File**: `.cursorrules` (this file)
+- **Scope**: Monorepo structure, workspace management, cross-platform guidelines
+
+#### Platform Rules:
+- **File**: `platforms/{platform}/.cursorrules`
+- **Scope**: Platform-specific infrastructure, services, troubleshooting procedures
+
+### Support Session Documentation
+
+All support sessions must be documented in the appropriate platform workspace:
+
+#### Documentation Location:
+- **Path**: `platforms/{platform}/session-logs/`
+- **Format**: `YYYY-MM-DD_HH-MM-SS_session-description.md`
+
+#### Documentation Structure:
+```markdown
+# Support Session Summary: [Session Title]
+
+## Session Information
+- **Start Time**: YYYY-MM-DD HH:MM:SS UTC
+- **End Time**: YYYY-MM-DD HH:MM:SS UTC
+- **Duration**: X hours/minutes
+- **System Fully Functional**: YYYY-MM-DD HH:MM:SS UTC
+- **Platform**: {platform-name}
+
+## Session Summary
+[Description of the session or maintenance task]
+
+## Process and Challenges
+[Detailed breakdown of steps taken and challenges encountered]
+
+## Outcome
+[Results and system status after resolution]
+
+## Key Learnings
+[Important insights for future reference]
+```
+
+### Development Workflow
+
+#### Adding New Platforms:
+1. Create new workspace: `platforms/{platform-name}/`
+2. Add platform-specific `package.json`
+3. Create platform-specific `.cursor/mcp_settings.json`
+4. Create platform-specific `.cursorrules`
+5. Update root `package.json` workspaces (if needed)
+6. Update root `.cursor/mcp_settings.json` platformConfigs
+
+#### Working with Platforms:
+1. **Set Context**: Use `source scripts/set-context.sh <platform>` to activate platform-specific configuration and navigate to workspace
+2. **Platform-Specific Work**: Use platform-specific MCP settings and rules automatically
+3. **Documentation**: Document all support sessions in platform's `session-logs/`
+4. **Return to Root**: Use `source scripts/unset-context.sh` to restore monorepo configuration
+5. **Commit Changes**: Always commit from the root level to maintain monorepo integrity
+
+### Git Workflow
+
+#### Committing Changes:
+```bash
+# Always commit from root level
+cd ~/support-staging
+git add .
+git commit -m "feat(platform): description of changes"
+git push origin main
+```
+
+#### Branch Strategy:
+- **main**: Stable monorepo with all platforms
+- **platform/{name}**: Platform-specific feature branches (if needed)
+
+### Context Switching System
+
+#### Quick Start:
+```bash
+# Load context aliases (optional, for convenience)
+source scripts/context-aliases.sh
+
+# Set context (switches config + changes directory)
+set-context staging
+
+# Work in platform-specific environment...
+# (Now using staging .cursorrules and MCP settings)
+
+# Return to monorepo root
+unset-context
+```
+
+#### Available Commands:
+- **`source scripts/set-context.sh <platform>`**: Set context and cd to platform
+- **`source scripts/unset-context.sh`**: Unset context and cd to root
+- **`npm run context-status`**: Check current active context
+- **`source scripts/context-aliases.sh`**: Load convenient aliases
+
+#### How It Works:
+1. **Backup**: Original monorepo configs are backed up
+2. **Symlink**: Platform-specific configs are symlinked to root
+3. **Directory**: Working directory changes to platform folder
+4. **Restore**: Unset restores original configs and returns to root
+
+### Best Practices
+
+1. **Platform Isolation**: Each platform workspace is self-contained
+2. **Context Switching**: Always use context system for platform-specific work
+3. **Shared Dependencies**: Common dependencies managed at root level
+4. **Documentation**: Platform-specific docs stay in platform workspace
+5. **MCP Settings**: Platform-specific Redis/service connections in platform MCP settings
+6. **Rules**: Platform-specific infrastructure rules in platform .cursorrules
+7. **Support Sessions**: Always document in appropriate platform's session-logs
+
+### Troubleshooting
+
+#### Workspace Issues:
+```bash
+# Reinstall all workspace dependencies
+npm run clean --workspaces
+npm run install:all
+
+# Check workspace configuration
+npm ls --workspaces
+
+# Verify platform structure
+ls -la platforms/*/
+```
+
+#### MCP Configuration Issues:
+- Check platform-specific MCP settings: `platforms/{platform}/.cursor/mcp_settings.json`
+- Verify Redis connections are platform-appropriate
+- Ensure MCP servers don't conflict between platforms
+
+## Project Context
+
+This monorepo supports multiple staging environments with platform-specific infrastructure, services, and troubleshooting procedures. Each platform workspace contains complete documentation and tools for that specific environment.

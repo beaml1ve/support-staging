@@ -1,0 +1,52 @@
+{
+  "name": "@support-staging/platform-staging",
+  "version": "1.0.0",
+  "description": "Staging platform support tools and documentation",
+  "private": true,
+  "main": "index.js",
+  "scripts": {
+    "start": "echo 'Staging platform workspace'",
+    "test": "echo 'No tests specified for staging platform'",
+    "lint": "echo 'No linting configured for staging platform'",
+    "clean": "rm -rf node_modules dist",
+    "open-session": "node scripts/open-session.js",
+    "close-session": "node scripts/close-session.js",
+    "session-status": "test -f .active-session && echo \"Active session: $(cat .active-session)\" || echo \"No active session\"",
+    "list-sessions": "ls -la session-logs/ 2>/dev/null || echo 'No sessions found'"
+  },
+  "dependencies": {
+    "redis": "^4.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "keywords": [
+    "staging",
+    "platform",
+    "support",
+    "redis",
+    "pm2",
+    "infrastructure"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/beaml1ve/support-staging.git",
+    "directory": "platforms/staging"
+  },
+  "platform": {
+    "name": "staging",
+    "type": "beamdevlive",
+    "services": {
+      "redis": {
+        "bds": "10.128.0.21:6379",
+        "bull": "10.128.0.21:6377",
+        "log": "standalone"
+      },
+      "postgresql": "localhost:5432",
+      "apache2": "localhost:80,443",
+      "mosquitto": "localhost:1883",
+      "tile38": "localhost:9851",
+      "haproxy": "localhost:6377"
+    }
+  }
+}

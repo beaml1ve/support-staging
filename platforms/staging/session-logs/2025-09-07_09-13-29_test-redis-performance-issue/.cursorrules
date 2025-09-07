@@ -1,0 +1,465 @@
+# ARCHIVED SESSION RULES
+# Session closed on: 2025-09-07T09:14:01.444Z
+# These rules were active during the session and are preserved for reference
+# Session ID: 2025-09-07_09-13-29_test-redis-performance-issue
+
+# Session-Specific Rules
+# This file contains rules active during this support session
+# Original platform rules copied and can be modified for this session context
+# Session ID: 2025-09-07_09-13-29_test-redis-performance-issue
+
+# Support Staging Project - Cursor Rules
+
+## MCP Server Configuration
+This project uses a Redis MCP server for BDS (Beam Data Store) operations.
+
+### Redis Connection Details
+- Host: 10.128.0.21 (beam21t)
+- Port: 6380
+- Redis Stack Version: 7.2.4
+- Total BDS Keys: 1.9M+
+
+### MCP Server Setup
+To use the Redis MCP server with this staging environment, add to your global MCP configuration:
+```json
+{
+  "mcpServers": {
+    "Redis Staging BDS": {
+      "type": "stdio",
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/redis/mcp-redis.git",
+        "redis-mcp-server",
+        "--url",
+        "redis://10.128.0.21:6380/0"
+      ]
+    }
+  }
+}
+```
+
+### BDS Key Format
+All BDS keys follow the format: `ecosystem:objectType:objectId:serviceId`
+- **Ecosystem**: Main partitioning segment (e.g., "beamdevlive")
+- **ObjectType**: Type of object (user, connection, device)
+- **ObjectId**: Unique identifier for the object
+- **ServiceId**: Service/organization identifier
+
+### Object Relationships
+- **Connection**: Contains references to user and device objectTypes
+- **User**: Represents authenticated users with alternativeIdValues field
+- **Device**: Represents devices for authenticated connections
+
+### Common Search Operations
+Use the search index `beamdevlive:user:alternativeId_29` for user searches:
+```
+FT.SEARCH "beamdevlive:user:alternativeId_29" "@alternativeIdValues:{email@domain.com}"
+```
+
+### Example User Search
+Viktor Zambo (viktor@beam.live) - Object ID: 9
+Found across 11 different serviceIds within beamdevlive ecosystem running on staging
+
+## Staging Environment Architecture
+This staging environment consists of:
+- **Platform Services**: Core platform infrastructure services running on a single Linux server
+- **On Services**: Microservices (also called "on" product services or beam services) - Node.js services managed with PM2, deployed from beamdevlive GitHub repository
+  - **Dependencies**: Require all platform services in healthy state
+
+### Platform Services
+All platform services have systemd support for management operations (start, stop, restart).
+
+- **apache2**: Web server
+  - Service: `systemctl {start|stop|restart|status} apache2`
+- **postgresql** (platform service postgresql): Database server
+  - Service: `systemctl {start|stop|restart|status} postgresql`
+  - **Authentication**: User: `postgres`, Password: `beamL1ve`
+  - **Connection**: `psql -U postgres -h localhost`
+  - **Alternative Names**: "platform service postgresql", "postgres"
+- **redis BDS HA with sentinels**: BDS (Beam Data Store) high availability
+  - Services: `redis-stack-server@bds{00,01,02}`, `redis-sentinel-server@bds{00,01,02}`
+  - Custom routing script: `/opt/redis-router/redis-router.sh`
+  - Starter script: `/opt/redis-router/start.sh`
+  - Function: Subscribes to redis-sentinels pub/sub messages and sets firewall rules to forward port 6379 to current BDS master
+  - **Operational Checks**:
+    1. Check if redis-router script is running in the background
+    2. Verify firewall forwards port 6379 to the current Redis BDS master
+  - **Common Issue**: Services receiving Redis readonly error
+    - **Cause**: Failover changed Redis BDS master but redis-router script not following failover
+    - **Manual Recovery**:
+      1. Set manually the proper instance firewall forwarding
+      2. Kill the redis-router process
+      3. Start redis-router using `/opt/redis-router/start.sh` script
+- **redis Bull HA with sentinels**: Bull queue high availability
+  - Services: `redis-stack-server@bull{00,01,02}`
+- **haproxy**: Load balancer managing redis-bull HA
+  - Service: `systemctl {start|stop|restart|status} haproxy`
+- **redis-log standalone**: Log storage
+  - Service: Redis log instances managed via systemd
+- **mosquitto**: MQTT broker
+  - Service: `systemctl {start|stop|restart|status} mosquitto`
+- **tile38**: Geofencing service
+  - Service: Process-based service (not systemd managed)
+- **prometheus metrics exporters**: Monitoring and metrics collection
+  - Services: `redis_exporter`, `redis_log_exporter`
+
+### Service Deployment
+- **Source Repository**: beamdevlive GitHub repository
+- **Deployment Path**: `/var/www/beamdevlive/`
+- **Structure**: Each service deployed in its own folder under the deployment path
+- **Process Manager**: PM2 for Node.js service management
+- **Management Scripts**: `~/support-staging/pm2-restart/` folder contains prepared scripts for managing microservice restarts after system reboot
+
+## Support Troubleshooting Workflow
+When new issues appear and a supporter is opening a new chat, follow this systematic health check order:
+
+### 1. OS Health Check (First Priority)
+- **Basic OS Health**: If Cursor IDE is connected to the beam2 instance, this indicates:
+  - Server is up and running
+  - Kernel is operational
+  - SSH server is running
+  - Sufficient memory and CPU resources for remote connection
+- **Additional Checks**:
+  - Check system resources (CPU, memory, disk space)
+  - Verify system load and performance
+  - Check system logs for critical errors
+- **Disk Space Issues**:
+  - When root filesystem usage is critically high, `/var/log` usually contains too many logs
+  - Check log directory sizes and rotate/clean old logs as needed
+- **Memory Health Tests**:
+  - Memory usage > 90% indicates memory issues
+  - Swap usage > 5% indicates memory pressure
+  - **Swap Cleanup**: If swap is used but free OS memory available:
+    - `sudo swapoff -a` (turn off swap)
+    - `sudo swapon -a` (turn on swap)
+- **CPU Health Tests**:
+  - High CPU usage across system indicates performance issues
+  - Any service running near 100% CPU for extended time needs examination
+  - May indicate platform service or microservice problems
+
+### 2. Platform Services Health Check (Second Priority)
+- Verify all 9 platform services are running and healthy:
+  - apache2, postgresql, redis BDS HA, redis Bull HA, haproxy
+  - redis-log, mosquitto, tile38, prometheus exporters
+- Check redis-router script operational status
+- Verify Redis BDS connectivity and firewall forwarding
+- **Critical Tests**: Verify forwarded ports point to Redis masters:
+  - `redis-cli -h 127.0.0.1 -p 6379 info replication` (BDS master check)
+  - `redis-cli -h 127.0.0.1 -p 6377 info replication` (Bull master check)
+  - Both should show `role:master` with connected slaves
+
+### 3. Microservices Health Check (Third Priority)
+- Check PM2 process status: `pm2 list`
+- Verify microservice dependencies on platform services
+- Review microservice logs and error states: `pm2 logs --lines 50 --nostream`
+- **Critical Error Detection**: Look for ECONNRESET, timeout, and connection errors
+  - These indicate network connectivity problems, service unavailability, or resource exhaustion
+  - Use: `pm2 logs | grep -i -E "(econnreset|timeout|connection.*reset|connection.*refused)"`
+- **Non-Critical Errors**: SchemaService errors are informational and don't affect functionality
+
+#### ⚠️ **CRITICAL STARTUP DEPENDENCY RULE:**
+**It is STRICTLY FORBIDDEN to start microservices until ALL of the following conditions are met:**
+1. **Redis BDS instances are fully operational:**
+   - All BDS instances (bds00, bds01, bds02) are running
+   - BDS instances have completely loaded their datasets into memory (no "LOADING" status)
+   - Master-slave replication is established and healthy
+   - Port 6379 forwards to BDS master with `role:master` confirmed
+2. **Redis Bull instances are fully operational:**
+   - All Bull instances (bull00, bull01, bull02) are running  
+   - Bull HA is managed by HAProxy
+   - Port 6377 forwards to Bull master with `role:master` confirmed
+3. **Redis-router script is operational:**
+   - Script is running in background monitoring sentinel messages
+   - Firewall rules correctly forward to current masters
+
+**Verification Commands:**
+```bash
+# Verify BDS master ready (must return "role:master", not "LOADING")
+redis-cli -h 127.0.0.1 -p 6379 info replication | grep role
+
+# Verify Bull master ready  
+redis-cli -h 127.0.0.1 -p 6377 info replication | grep role
+
+# Verify BDS not loading
+redis-cli -h 127.0.0.1 -p 6379 ping  # Must return "PONG", not "LOADING"
+```
+
+**Consequence of Violation:** Starting microservices before Redis infrastructure is ready will cause:
+- Connection failures and service crashes
+- Data corruption risks
+- Queue processing failures
+- Cascading service failures across the entire platform
+
+#### 📊 **Redis Loading Time Calculation Methodology:**
+When analyzing Redis BDS loading progress, always use timestamped measurements for accurate calculations:
+
+**Correct Method:**
+```bash
+# Take timestamped baseline measurement
+echo "=== Baseline ===" && date && redis-cli -h 127.0.0.1 -p 6381 info memory | grep "used_memory:" | head -1
+
+# Wait measured time interval (30-60 seconds)
+sleep 30 && echo "=== +30 seconds ===" && date && redis-cli -h 127.0.0.1 -p 6381 info memory | grep "used_memory:" | head -1
+
+# Take final measurement
+sleep 30 && echo "=== +60 seconds total ===" && date && redis-cli -h 127.0.0.1 -p 6381 info memory | grep "used_memory:" | head -1
+```
+
+**CRITICAL: Always use exact bytes from `used_memory:` field, NEVER use `used_memory_human:` for calculations**
+
+**Analysis Formula:**
+- **Loading Rate** = (Memory_Final - Memory_Initial) / Time_Interval_Seconds
+- **Trend Analysis** = Compare rates between consecutive periods
+- **Completion Estimate** = Remaining_Data / Current_Loading_Rate
+- **Account for Acceleration/Deceleration** in final estimates
+
+**Common Mistakes to Avoid:**
+- ❌ Using assumed time intervals without timestamps
+- ❌ Using `used_memory_human:` instead of exact `used_memory:` bytes for calculations
+- ❌ Ignoring loading rate trends (acceleration/deceleration)
+- ❌ Not accounting for final indexing phase slowdown
+- ❌ Calculating completion time without considering dataset percentage
+
+**Typical Redis Loading Pattern:**
+- **Initial Phase**: Fast data loading from disk
+- **Middle Phase**: Steady loading with occasional slowdowns
+- **Final Phase**: Search index rebuilding (often slower, but may accelerate)
+- **Completion**: Usually at 99.3-99.9% progress
+
+#### ⏱️ **Redis Service Restart Loading Time Estimates:**
+When Redis services (BDS or Bull instances) are restarted, provide loading time estimates based on dataset size and system conditions:
+
+**BDS (Beam Data Store) Loading Estimates:**
+- **Dataset Size**: ~14-15GB (1.9M+ keys)
+- **Memory Limit**: 24GB per instance
+- **Expected Loading Time**: 
+  - **Optimistic**: 15-25 minutes (good I/O, low system load)
+  - **Typical**: 25-45 minutes (normal conditions)
+  - **Pessimistic**: 45-90 minutes (high system load, slow I/O)
+
+**Bull (Queue) Loading Estimates:**
+- **Dataset Size**: Typically smaller than BDS
+- **Expected Loading Time**:
+  - **Optimistic**: 5-15 minutes
+  - **Typical**: 10-25 minutes
+  - **Pessimistic**: 20-45 minutes
+
+**Factors Affecting Loading Time:**
+- **Disk I/O Performance**: SSD vs HDD, disk utilization
+- **System Memory**: Available RAM for loading process
+- **CPU Load**: Other processes competing for resources
+- **Network**: If loading from network-attached storage
+- **Search Indexes**: Complex JSON field indexing (major factor)
+
+**Loading Phases Timeline:**
+1. **Service Startup** (0-2 minutes): Systemd service initialization
+2. **Initial Data Loading** (2-60% of total time): Reading from disk
+3. **Memory Organization** (20-30% of total time): Structuring data in RAM
+4. **Search Index Rebuilding** (30-50% of total time): Most time-intensive phase
+5. **Replication Setup** (final 2-5 minutes): Master-slave connections
+
+**Critical Rule: NEVER start microservices until ALL Redis instances (masters AND replicas) have:**
+- ✅ Completed loading (no "LOADING" status)
+- ✅ Established master-slave replication
+- ✅ Confirmed operational via port forwarding tests
+
+**Verification Commands for All Instances:**
+```bash
+# Check all BDS instances
+for port in 6380 6381 6382; do
+  echo "=== BDS Instance $port ==="
+  redis-cli -h 127.0.0.1 -p $port ping
+  redis-cli -h 127.0.0.1 -p $port info replication | grep role
+done
+
+# Check all Bull instances via HAProxy
+redis-cli -h 127.0.0.1 -p 6377 ping
+redis-cli -h 127.0.0.1 -p 6377 info replication | grep role
+```
+
+**Wait Time Recommendation:**
+- **After Redis restart**: Wait minimum 30-60 minutes before starting microservices
+- **Monitor progress**: Use timestamped loading analysis every 10-15 minutes
+- **Verify completion**: All instances must show "PONG" and proper replication roles
+
+#### ⚠️ **CRITICAL: Pre-Restart AOF Optimization Rule:**
+**Before restarting Redis services, ALWAYS run BGREWRITEAOF on master instances to prevent extremely long loading times:**
+
+**Why This is Critical:**
+- **Long incremental AOF files** can cause loading times of several hours instead of minutes
+- **BGREWRITEAOF** compacts the AOF file to contain only current dataset state
+- **Skipping this step** may result in processing massive AOF files during restart
+- **Prevents data loading delays** that can extend restart time by 5-10x
+
+**Pre-Restart Commands (Run on ALL Masters):**
+```bash
+# For BDS masters (identify current master first)
+redis-cli -h 127.0.0.1 -p 6379 info replication | grep role  # Find current master
+redis-cli -h 127.0.0.1 -p 6381 BGREWRITEAOF  # Example if 6381 is master
+
+# For Bull masters (via HAProxy)
+redis-cli -h 127.0.0.1 -p 6377 BGREWRITEAOF
+
+# Wait for completion before restart
+redis-cli -h 127.0.0.1 -p 6381 LASTSAVE  # Check if background save completed
+```
+
+**Verification Before Restart:**
+```bash
+# Check AOF rewrite status
+redis-cli -h 127.0.0.1 -p 6381 info persistence | grep aof_rewrite_in_progress
+# Should return: aof_rewrite_in_progress:0 (completed)
+
+# Check AOF file size reduction
+ls -lh /var/lib/redis-stack/bds*/appendonly.aof
+```
+
+**Consequence of Skipping:**
+- **Normal restart**: 25-45 minutes loading time
+- **Without BGREWRITEAOF**: 2-6 hours loading time (processing large AOF)
+- **System impact**: Extended downtime, resource exhaustion
+- **Microservice delays**: Cannot start services for hours instead of minutes
+
+**Best Practice Workflow:**
+1. **Identify all master instances** (BDS and Bull)
+2. **Run BGREWRITEAOF** on each master
+3. **Wait for completion** (check aof_rewrite_in_progress:0)
+4. **Verify AOF file optimization** (smaller file size)
+5. **Then proceed with service restart**
+6. **Monitor loading with timestamped analysis**
+
+### Microservices Overview
+- **Total Services**: ~267 microservices configured
+- **Expected Running**: ~189 services online (78 intentionally stopped test services)
+- **Resource Usage**: Each service typically uses ~30MB memory, 0% CPU when idle
+- **Stability Indicators**: Long uptimes (53+ days) and low restart counts indicate health
+
+## System Maintenance History
+Recent maintenance operations completed:
+- **Disk Space Optimization**: Freed 17GB by implementing Redis Stack log rotation
+- **Systemd Cleanup**: Removed obsolete and typo services (redis-monitor, redis-router)
+- **Kernel Optimization**: Increased `vm.max_map_count` to 262144 for Redis performance
+- **Log Management**: Configured logrotate for `/var/log/redis-stack` with daily rotation
+- **Failed Services Reduction**: Cleaned up from 9 to 4 failed systemd services (57% improvement)
+
+## System Health Status
+- **OS Health**: Excellent (61% root disk usage after cleanup)
+- **Platform Services**: All 9 services operational and healthy
+- **Microservices**: 189/189 intended services running with excellent stability
+- **Overall Health Score**: 98/100
+- **Restart Risk**: Very Low (system optimized and cleaned)
+
+## PM2 Microservices Management After System Reboot
+
+### Using PM2 Restart Scripts (~/support-staging/pm2-restart/)
+The project includes prepared scripts for managing microservice restarts while preserving exact service states:
+
+#### 🚀 **Quick Start - One-Click Restart:**
+```bash
+cd ~/support-staging/pm2-restart/
+./pm2-daemon-restart.sh
+```
+**This script automatically:**
+1. Saves current state (online/stopped services)
+2. Stops all services gracefully
+3. Kills and restarts PM2 daemon
+4. Restores exact same state (preserves which services were stopped)
+
+#### 📋 **Manual Step-by-Step Process:**
+```bash
+cd ~/support-staging/pm2-restart/
+
+# 1. Save current state before any changes
+./pm2-simple-state.sh save
+
+# 2. Stop all services
+pm2 stop all
+
+# 3. Kill PM2 daemon completely
+pm2 kill
+
+# 4. Restore with exact same state
+./pm2-simple-state.sh restore
+```
+
+#### 🔍 **Available Scripts:**
+- **`pm2-daemon-restart.sh`** - ✅ **Recommended**: Automated one-click daemon restart
+- **`pm2-simple-state.sh`** - Primary tool for save/restore operations
+- **`pm2-restore-state.sh`** - Advanced state management with timestamped backups
+- **`pm2-manual-restart.sh`** - Reference guide for manual step-by-step process
+
+#### 📊 **State Management Features:**
+- **Launch Order Preservation**: Services processed in PM2 ID order (0, 1, 2, 3...)
+- **State Preservation**: Online services remain online, stopped services remain stopped
+- **Backup System**: Timestamped state files in `/var/www/beamdevlive/.pm2/`
+- **Current System**: ~189 online services, ~78 intentionally stopped services
+
+#### 🎯 **Common Commands:**
+```bash
+# Show current service state
+./pm2-simple-state.sh show
+
+# List available backups
+./pm2-restore-state.sh list
+
+# Restore from specific backup
+./pm2-restore-state.sh restore /path/to/backup.pm2
+```
+
+#### ⚠️ **Important Notes:**
+- Always save state before making changes: `./pm2-simple-state.sh save`
+- Scripts preserve exact service states (online/stopped status)
+- Use `pm2-daemon-restart.sh` for routine maintenance and after system reboots
+- State files are automatically timestamped for recovery purposes
+
+**Note**: Platform health check has been done recently and all services are operational.
+
+## Support Session Documentation
+
+### Support Chat Summary Rule
+**All support sessions must be documented using the following process:**
+
+1. **Create Summary Document**: Store in `~/support-staging/session-logs/` folder
+2. **Filename Format**: `YYYY-MM-DD_HH-MM-SS_session-description.md`
+3. **Required Header Information**:
+   - **Start Time**: When support session began
+   - **End Time**: When session was resolved
+   - **Duration**: Total time spent on session
+   - **System Fully Functional**: Timestamp when system returned to operational state
+
+4. **Document Structure**:
+   ```markdown
+   # Support Session Summary: [Session Title]
+   
+   ## Session Information
+   - **Start Time**: YYYY-MM-DD HH:MM:SS UTC
+   - **End Time**: YYYY-MM-DD HH:MM:SS UTC  
+   - **Duration**: X minutes/hours
+   - **System Fully Functional**: YYYY-MM-DD HH:MM:SS UTC
+   
+   ## Session Summary
+   [Brief description of the problem]
+   
+   ## Root Cause Analysis
+   [Detailed analysis of what caused the issue]
+   
+   ## Resolution
+   [How the issue was resolved]
+   
+   ## Key Learnings
+   [Important insights for future reference]
+   
+   ## System Status at Resolution
+   [Final system health state]
+   ```
+
+5. **Timing Requirements**:
+   - Document session immediately after resolution
+   - Include precise timestamps for system state changes
+   - Note when system became fully operational vs. when issue was "resolved"
+
+6. **File Storage**: All support session summaries stored in `~/support-staging/session-logs/` for historical reference and pattern analysis
+
+## Project Context
+This is a support staging environment for troubleshooting and maintenance operations across both platform services and on services.

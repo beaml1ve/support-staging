@@ -1,0 +1,46 @@
+{
+  "mcpServers": {
+    "staging-redis-bds": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/redis/mcp-redis.git",
+        "redis-mcp-server",
+        "--url",
+        "redis://10.128.0.21:6379/0"
+      ],
+      "description": "Staging Redis BDS (Beam Data Store) server connection",
+      "env": {
+        "REDIS_HOST": "10.128.0.21",
+        "REDIS_PORT": "6379"
+      }
+    }
+  },
+  "monorepoConfig": {
+    "description": "Support staging environment monorepo with platform-specific workspaces",
+    "workspaces": [
+      "platforms/*"
+    ],
+    "platformConfigs": {
+      "staging": {
+        "path": "platforms/staging",
+        "description": "Staging environment (beamdevlive ecosystem)",
+        "mcpServer": "staging-redis-bds",
+        "configFiles": [
+          "platforms/staging/.cursor/mcp_settings.json",
+          "platforms/staging/.cursorrules"
+        ]
+      }
+    }
+  },
+  "commonQueries": {
+    "listWorkspaces": {
+      "description": "List all available platform workspaces",
+      "command": "npm run workspaces --silent"
+    },
+    "switchToPlatform": {
+      "description": "Switch to a specific platform workspace",
+      "template": "cd platforms/{platform}"
+    }
+  }
+}
