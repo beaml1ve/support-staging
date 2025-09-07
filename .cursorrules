@@ -7,24 +7,24 @@ This is an npm workspace-based monorepo for support staging environments. Each p
 ## Core Constraints and Principles
 
 
-### 0. **CRITICAL: Context Enforcement Rule**
-- **MANDATORY**: No operations allowed in root context
-- **REQUIREMENT**: Must set platform context before any work
-- **Enforcement**: All support work must be done within a platform context
+### 0. **CRITICAL: Sparse Checkout Enforcement Rule**
+- **MANDATORY**: Only one platform allowed in checkout at any time
+- **REQUIREMENT**: Must use sparse checkout with exactly one platform
+- **Enforcement**: All npm operations validate sparse checkout configuration
+- **Validation**: Automatic validation on `npm install` and `preinstall` hooks
 - **Commands Allowed in Root**:
-  - `source scripts/set-context.sh <platform>` - Set platform context
-  - `source scripts/context-aliases.sh` - Load context aliases
-  - `npm run context-status` - Check current context
+  - `scripts/setup-sparse-checkout.sh <platform>` - Setup sparse checkout
+  - `npm run validate-checkout` - Validate current checkout
+  - `npm run get-platform` - Get active platform name
   - `npm run rules-status` - Check rules protection status
   - `npm run protect-rules <target>` - Protect rules
   - `npm run unprotect-rules <target>` - Unprotect rules
   - Git operations (`git add`, `git commit`, `git push`)
 - **REJECTED Operations in Root**:
-  - Any platform-specific work
-  - Any support operations
-  - Any service management
-  - Any troubleshooting activities
-- **Error Message**: "❌ CONTEXT REQUIRED: Use 'source scripts/set-context.sh <platform>' to set platform context before performing any operations"
+  - Multiple platforms checked out simultaneously
+  - Working without sparse checkout enabled
+  - Any platform-specific work in root context
+- **Error Message**: "❌ SPARSE CHECKOUT REQUIRED: Use 'scripts/setup-sparse-checkout.sh <platform>' to configure single platform checkout"
 
 ### 1. **Rules Protection System**
 - **CRITICAL**: Root and platform .cursorrules files are protected by default
@@ -37,14 +37,15 @@ This is an npm workspace-based monorepo for support staging environments. Each p
   - `npm run rules-status` - Show protection status
 - **Auto-Protection**: Rules should be re-protected after modifications
 
-### 2. **Context Switching System**
-- **MANDATORY**: Use context switching for platform-specific work
+### 2. **Sparse Checkout System**
+- **MANDATORY**: Use sparse checkout for platform isolation
 - **Commands**:
-  - `source scripts/set-context.sh <platform>` - Set context, cd to platform, npm install
-  - `source scripts/set-context.sh <platform> --skip-install` - Set context without npm install
-  - `source scripts/set-context.sh` (no args) - Restore monorepo root configuration
-- **Behavior**: Context switching automatically handles configuration symlinks and directory changes
-- **Aliases**: Load with `source scripts/context-aliases.sh` for short commands
+  - `scripts/setup-sparse-checkout.sh <platform>` - Setup sparse checkout for platform
+  - `scripts/setup-sparse-checkout.sh status` - Show current sparse checkout status
+  - `npm run validate-checkout` - Validate sparse checkout configuration
+  - `npm run get-platform` - Get currently active platform name
+- **Behavior**: Sparse checkout ensures only one platform is present in the working directory
+- **Benefits**: No context switching needed, cleaner workspace, automatic platform isolation
 
 ### 3. **Session Management System**
 - **REQUIRED**: Use session management for all support work
@@ -191,16 +192,17 @@ session-logs/YYYY-MM-DD_HH-MM-SS_session-name/
 ## Development Workflow
 
 
-**⚠️ CRITICAL: All platform work must be done within a platform context. No operations allowed in root context.**
+**⚠️ CRITICAL: All platform work must be done with sparse checkout. Only one platform allowed in checkout.**
 
 ### Working with Platforms:
-1. **Set Context**: Use `source scripts/set-context.sh <platform>` to activate platform-specific configuration and navigate to workspace
-2. **Open Session**: Use `npm run open-session <session-name>` for all support work
-3. **Platform-Specific Work**: Use platform and session-specific MCP settings and rules automatically
-4. **Document Work**: All actions documented in session notes and auto-generated summaries
-5. **Close Session**: Use `npm run close-session` to generate comprehensive documentation
-6. **Return to Root**: Use `source scripts/set-context.sh` (no args) to restore monorepo configuration
-7. **Commit Changes**: Always commit from the root level to maintain monorepo integrity
+1. **Setup Sparse Checkout**: Use `scripts/setup-sparse-checkout.sh <platform>` to configure single platform checkout
+2. **Validate Setup**: Run `npm install` (automatically validates sparse checkout)
+3. **Navigate to Platform**: `cd platforms/<platform>/` to work in platform context
+4. **Open Session**: Use `npm run open-session <session-name>` for all support work
+5. **Platform-Specific Work**: Use platform and session-specific MCP settings and rules automatically
+6. **Document Work**: All actions documented in session notes and auto-generated summaries
+7. **Close Session**: Use `npm run close-session` to generate comprehensive documentation
+8. **Commit Changes**: Always commit from the root level to maintain monorepo integrity
 
 ### Git Workflow:
 ```bash
@@ -213,13 +215,13 @@ git push origin main
 
 ## Best Practices
 
-0. **Context Enforcement**: Never perform operations in root context - always set platform context first
+0. **Sparse Checkout Enforcement**: Always use sparse checkout with exactly one platform - never work with multiple platforms checked out
 
-1. **Platform Isolation**: Each platform workspace is self-contained
-2. **Context Switching**: Always use context system for platform-specific work
-3. **Session Management**: Use session system for all support work
+1. **Platform Isolation**: Each platform workspace is completely isolated via sparse checkout
+2. **Sparse Checkout Setup**: Always use `scripts/setup-sparse-checkout.sh <platform>` for platform selection
+3. **Session Management**: Use session system for all support work within the platform
 4. **Rules Protection**: Protect rules when not actively modifying them
-5. **Shared Dependencies**: Common dependencies managed at root level
+5. **Validation**: Run `npm install` to automatically validate sparse checkout configuration
 6. **Documentation**: Platform-specific docs stay in platform workspace
 7. **MCP Settings**: Platform-specific Redis/service connections in platform MCP settings
 8. **Support Sessions**: Always use session management system for structured documentation

@@ -7,13 +7,15 @@
     "platforms/*"
   ],
   "scripts": {
-    "install:all": "npm install",
+    "preinstall": "node scripts/validate-sparse-checkout.js --quiet",
+    "install": "node scripts/validate-sparse-checkout.js && npm install",
+    "postinstall": "echo '✅ Installation complete for' $(node scripts/validate-sparse-checkout.js --get-platform --quiet) 'platform'",
+    "validate-checkout": "node scripts/validate-sparse-checkout.js --validate",
+    "get-platform": "node scripts/validate-sparse-checkout.js --get-platform --quiet",
     "clean": "npm run clean --workspaces",
     "build": "npm run build --workspaces",
     "test": "npm test --workspaces",
     "lint": "npm run lint --workspaces",
-    "set-context": "echo '💡 Use: source scripts/set-context.sh <context>' && echo '📋 This will set context, change directory, and npm install' && echo '💡 Use: source scripts/set-context.sh (no args)' && echo '📋 This will restore monorepo root configuration'",
-    "context-status": "node scripts/unset-context.js status",
     "protect-rules": "node scripts/protect-rules.js protect",
     "unprotect-rules": "node scripts/protect-rules.js unprotect",
     "rules-status": "node scripts/protect-rules.js status"

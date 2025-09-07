@@ -1,14 +1,14 @@
 # Support Staging Monorepo
 
-A comprehensive npm workspace-based monorepo for managing multiple staging environments with platform-specific configurations, session management, and structured documentation.
+A comprehensive npm workspace-based monorepo for managing multiple staging environments with platform-specific configurations, session management, and structured documentation using **Git Sparse Checkout** for ultimate platform isolation.
 
 ## 🏗️ Architecture Overview
 
 This monorepo enforces structured workflows through:
-- **Context Switching**: Platform-specific work environments
+- **Sparse Checkout**: Only one platform checked out at a time for complete isolation
 - **Session Management**: Isolated support sessions with dedicated documentation
 - **Rules Protection**: Prevents accidental modification of critical configuration files
-- **Workspace Isolation**: Complete separation between different platforms
+- **Automatic Validation**: Built-in validation ensures proper sparse checkout configuration
 
 ```
 support-staging/                 # Root monorepo
@@ -36,28 +36,31 @@ support-staging/                 # Root monorepo
 git clone https://github.com/beaml1ve/support-staging.git
 cd support-staging
 
-# Install dependencies for all workspaces
-npm run install:all
-
-# Load convenient aliases (optional)
-source scripts/context-aliases.sh
-```
-
-### 2. Start Working on a Platform
-```bash
-# Set context to staging platform (required for all work)
-source scripts/set-context.sh staging
+# Setup sparse checkout for your platform (choose one)
+scripts/setup-sparse-checkout.sh staging
 
 # This will:
-# - Switch to staging-specific configuration
-# - Change directory to platforms/staging/
-# - Install platform dependencies
-# - Enable platform-specific rules and MCP settings
+# - Enable git sparse checkout
+# - Configure checkout for only the staging platform
+# - Validate the configuration
+# - Show setup status
 ```
 
-### 3. Open a Support Session
+### 2. Install and Validate
 ```bash
-# Create a new support session (now in platforms/staging/)
+# Install dependencies (automatically validates sparse checkout)
+npm install
+
+# Manual validation (optional)
+npm run validate-checkout
+```
+
+### 3. Navigate to Platform and Start Working
+```bash
+# Navigate to your platform (only one is checked out)
+cd platforms/staging
+
+# Create a new support session
 npm run open-session "redis-performance-issue"
 
 # This creates:
@@ -93,13 +96,16 @@ npm run close-session
 # - Updated metadata with duration
 ```
 
-### 6. Return to Root Context
+### 6. Switch Platforms (if needed)
 ```bash
-# Return to monorepo root
-source scripts/set-context.sh
+# Return to root
+cd ~/support-staging
 
-# Or using aliases:
-set-context  # (no arguments)
+# Setup sparse checkout for different platform
+scripts/setup-sparse-checkout.sh production
+
+# Install dependencies for new platform
+npm install
 ```
 
 ## 📋 Core Commands Reference

@@ -1,0 +1,72 @@
+# Session-Specific Rules: Server Restart with Increased Resources
+
+## Session Context
+- **Session ID**: 2025-09-06_10-30-00_server-restart-increased-resources
+- **Type**: Planned Maintenance
+- **Platform**: staging (beamdevlive ecosystem)
+- **Objective**: Server restart with resource upgrade and service validation
+
+## Session-Specific Constraints
+
+### Redis Management Priority
+- **CRITICAL**: Always apply `BGREWRITEAOF` before Redis service restarts
+- **Monitoring**: Track AOF file size and loading progress during restarts
+- **Calculation**: Use file size progression for loading time estimates
+- **Dependencies**: Ensure master-slave relationships established before microservice startup
+
+### Service Startup Order
+1. **Platform Services First**: Redis, PostgreSQL, Apache2, Mosquitto, Tile38
+2. **Validate Readiness**: Confirm all platform services healthy and ready
+3. **Microservices Last**: Start PM2 services only after platform readiness
+4. **Monitor Progress**: Track startup times and health status
+
+### PM2 Management
+- **Scripts**: Use `pm2-restart/` scripts for systematic service recovery
+- **State Management**: Leverage `pm2-simple-state.sh` for configuration restoration
+- **Health Monitoring**: Validate critical services vs non-critical warnings
+- **Performance Tracking**: Document startup time improvements
+
+### System Optimization Focus
+- **Kernel Parameters**: Optimize `vm.max_map_count` and related settings
+- **Log Management**: Implement rotation for high-volume Redis logs
+- **Auto-start**: Configure critical services for automatic startup
+- **Resource Monitoring**: Track memory, CPU, and disk usage during operations
+
+### Documentation Requirements
+- **Real-time Notes**: Document all commands and observations in session-notes.md
+- **Time Tracking**: Include timestamps for all major operations
+- **Performance Metrics**: Record startup times and system metrics
+- **Lessons Learned**: Capture insights for future maintenance procedures
+
+## Troubleshooting Priorities
+
+### Redis Issues
+- Check AOF file sizes and loading progress
+- Verify master-slave replication status
+- Monitor memory usage and loading percentages
+- Validate port connectivity and service health
+
+### PM2 Issues  
+- Verify Redis readiness before microservice startup
+- Check for `econnreset` and `timeout` errors (critical)
+- Ignore `SchemaService` errors (non-critical)
+- Use restart scripts for systematic recovery
+
+### System Issues
+- Monitor disk space (especially `/var/log`)
+- Check systemd service status and auto-start configuration
+- Validate kernel parameters and system limits
+- Ensure proper firewall and network configuration
+
+## Success Criteria
+- All platform services running and healthy
+- Redis BDS and Bull clusters fully operational with proper replication
+- All 260+ microservices started and responding
+- System performance improved or maintained
+- Complete documentation of process and lessons learned
+
+## Session Tools and Scripts
+- `pm2-restart/pm2-daemon-restart.sh` - PM2 systematic restart
+- `pm2-restart/pm2-simple-state.sh` - PM2 state management
+- Redis monitoring commands for loading progress
+- Systemd service management for auto-start configuration
