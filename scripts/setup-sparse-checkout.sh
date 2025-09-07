@@ -109,8 +109,8 @@ setup_sparse_checkout() {
 # Include all root files and directories
 /*
 
-# Exclude all platforms
-!platforms/*
+# Exclude the entire platforms directory
+!/platforms/
 
 # Include only the selected platform
 platforms/$platform/

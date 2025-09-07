@@ -57,12 +57,12 @@ function printSparseCheckoutInstructions() {
   console.log('2️⃣ Configure sparse checkout (choose ONE platform):');
   console.log('   # For staging platform:');
   console.log('   echo "/*" > .git/info/sparse-checkout');
-  console.log('   echo "!platforms/*" >> .git/info/sparse-checkout');
+  console.log('   echo "!/platforms/" >> .git/info/sparse-checkout');
   console.log('   echo "platforms/staging/" >> .git/info/sparse-checkout\n');
   
   console.log('   # For production platform (example):');
   console.log('   echo "/*" > .git/info/sparse-checkout');
-  console.log('   echo "!platforms/*" >> .git/info/sparse-checkout');
+  console.log('   echo "!/platforms/" >> .git/info/sparse-checkout');
   console.log('   echo "platforms/production/" >> .git/info/sparse-checkout\n');
   
   console.log('3️⃣ Apply sparse checkout:');
@@ -84,7 +84,7 @@ function printSwitchPlatformInstructions(currentPlatform) {
   
   console.log('1️⃣ Update sparse checkout configuration:');
   console.log('   echo "/*" > .git/info/sparse-checkout');
-  console.log('   echo "!platforms/*" >> .git/info/sparse-checkout');
+  console.log('   echo "!/platforms/" >> .git/info/sparse-checkout');
   console.log('   echo "platforms/NEW_PLATFORM_NAME/" >> .git/info/sparse-checkout\n');
   
   console.log('2️⃣ Apply the changes:');

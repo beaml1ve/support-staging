@@ -8,7 +8,6 @@
   ],
   "scripts": {
     "preinstall": "node scripts/validate-sparse-checkout.js --quiet",
-    "install": "node scripts/validate-sparse-checkout.js && npm install",
     "postinstall": "echo '✅ Installation complete for' $(node scripts/validate-sparse-checkout.js --get-platform --quiet) 'platform'",
     "validate-checkout": "node scripts/validate-sparse-checkout.js --validate",
     "get-platform": "node scripts/validate-sparse-checkout.js --get-platform --quiet",
