@@ -1,0 +1,18 @@
+{
+  "sessionId": "2025-09-07_11-21-19_test-new-naming-format",
+  "sessionName": "test-new-naming-format",
+  "platform": "staging",
+  "startTime": "2025-09-07T11:21:19.017Z",
+  "endTime": "2025-09-07T11:21:42.151Z",
+  "status": "closed",
+  "objective": "test-new-naming-format",
+  "files": {
+    "rules": ".cursorrules",
+    "notes": "session-notes.md",
+    "chatHistory": "chat-history.md",
+    "summary": "session-summary.md"
+  },
+  "tags": [],
+  "participants": [],
+  "duration": "0m"
+}

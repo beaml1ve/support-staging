@@ -21,7 +21,9 @@ function generateSessionId() {
 }
 
 function createSessionFolder(sessionId, sessionName) {
-  const sessionFolder = path.join(SESSIONS_DIR, sessionId);
+  // Create folder name with timestamp prefix and session name suffix
+  const folderName = sessionName ? `${sessionId}_${sessionName}` : sessionId;
+  const sessionFolder = path.join(SESSIONS_DIR, folderName);
   
   if (fs.existsSync(sessionFolder)) {
     console.error(`❌ Session folder already exists: ${sessionFolder}`);
@@ -249,8 +251,7 @@ function openSession(sessionName) {
   
   // Generate session ID and create folder
   const sessionId = generateSessionId();
-  const fullSessionName = sessionName ? `${sessionName}` : 'support-session';
-  const sessionFolder = createSessionFolder(`${sessionId}_${fullSessionName}`);
+  const sessionFolder = createSessionFolder(sessionId, sessionName);
   
   // Copy platform rules and create session files
   copyPlatformRules(sessionFolder);
