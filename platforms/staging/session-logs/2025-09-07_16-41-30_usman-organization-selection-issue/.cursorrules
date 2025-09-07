@@ -1,0 +1,263 @@
+# ARCHIVED SESSION RULES
+# Session closed on: 2025-09-07T21:45:42.809Z
+# These rules were active during the session and are preserved for reference
+# Session ID: 2025-09-07_16-41-30_usman-organization-selection-issue
+
+# Session-Specific Rules
+# This file contains rules active during this support session
+# Original platform rules copied and can be modified for this session context
+# Session ID: 2025-09-07_16-41-30_usman-organization-selection-issue
+
+# Support Staging Monorepo Rules
+
+## Monorepo Structure
+
+This is an npm workspace-based monorepo for support staging environments. Each platform has its own workspace with specific configurations and tools.
+
+## Core Constraints and Principles
+
+### 1. **Rules Protection System**
+- **CRITICAL**: Root and platform .cursorrules files are protected by default
+- **Modification Requires**: Explicit unprotection via `npm run unprotect-rules <target>`
+- **Protection Commands**:
+  - `npm run protect-rules root` - Protect root rules
+  - `npm run protect-rules staging` - Protect platform rules
+  - `npm run unprotect-rules root` - Allow root rules modification
+  - `npm run unprotect-rules staging` - Allow platform rules modification
+  - `npm run rules-status` - Show protection status
+- **Auto-Protection**: Rules should be re-protected after modifications
+
+### 2. **Context Switching System**
+- **MANDATORY**: Use context switching for platform-specific work
+- **Commands**:
+  - `source scripts/set-context.sh <platform>` - Set context, cd to platform, npm install
+  - `source scripts/set-context.sh <platform> --skip-install` - Set context without npm install
+  - `source scripts/set-context.sh` (no args) - Restore monorepo root configuration
+- **Behavior**: Context switching automatically handles configuration symlinks and directory changes
+- **Aliases**: Load with `source scripts/context-aliases.sh` for short commands
+
+### 3. **Session Management System**
+- **REQUIRED**: Use session management for all support work
+- **Session Commands** (in platform workspace):
+  - `npm run open-session <session-name>` - Create dedicated session folder
+  - `npm run close-session` - Close session and generate documentation
+  - `npm run session-status` - Check active session
+  - `npm run list-sessions` - List all sessions
+- **Session Structure**: Each session gets isolated folder with own .cursorrules, notes, and documentation
+- **Documentation**: Auto-generated session summaries and chat history for continuation
+
+### 4. **Workspace Isolation**
+- **Platform Independence**: Each platform workspace is completely self-contained
+- **Configuration Isolation**: Platform-specific .cursorrules and MCP settings
+- **Dependency Management**: Platform-specific package.json and dependencies
+- **Session Isolation**: Each session within a platform has its own rules and context
+
+## Workspace Organization
+```
+support-staging/                 # Root monorepo
+├── package.json                # Root package.json with workspaces config
+├── .cursor/                    # Root MCP settings
+│   └── mcp_settings.json      # Monorepo-wide MCP configuration
+├── .cursorrules               # This file - monorepo rules
+├── scripts/                   # Monorepo management scripts
+│   ├── set-context.sh         # Context switching (with directory change)
+│   ├── unset-context.sh       # Legacy unset script
+│   ├── context-aliases.sh     # Convenient aliases
+│   └── protect-rules.js       # Rules protection system
+└── platforms/                 # Platform-specific workspaces
+    └── staging/               # Staging platform workspace
+        ├── package.json       # Workspace-specific package.json
+        ├── .cursor/           # Platform-specific MCP settings
+        │   └── mcp_settings.json
+        ├── .cursorrules       # Platform-specific rules
+        ├── scripts/           # Platform session management
+        │   ├── open-session.js
+        │   └── close-session.js
+        ├── session-logs/      # Support session documentation
+        └── pm2-restart/       # PM2 management scripts
+```
+
+## Available Platforms
+- **platforms/staging**: Staging environment (beamdevlive ecosystem)
+  - Redis BDS: 10.128.0.21:6379
+  - Platform services: Apache2, PostgreSQL, Redis HA, Mosquitto, Tile38
+  - Microservices: 260+ Node.js services managed by PM2
+
+## Workspace Commands
+
+### Root Level Commands:
+```bash
+# Install all workspace dependencies
+npm run install:all
+
+# Run commands across all workspaces
+npm run build --workspaces
+npm run test --workspaces
+npm run lint --workspaces
+
+# Clean all workspaces
+npm run clean --workspaces
+
+# Rules protection
+npm run protect-rules <target>     # Protect rules (root, staging, all)
+npm run unprotect-rules <target>   # Unprotect rules
+npm run rules-status               # Show protection status
+```
+
+### Platform-Specific Work:
+```bash
+# Set context and navigate to specific platform (RECOMMENDED)
+source scripts/set-context.sh staging
+
+# Or load aliases first, then use short commands
+source scripts/context-aliases.sh
+set-context staging
+
+# Return to monorepo root
+set-context
+```
+
+## Context Switching System
+
+### Quick Start:
+```bash
+# Load context aliases (optional, for convenience)
+source scripts/context-aliases.sh
+
+# Set context (switches config + changes directory + npm install)
+set-context staging
+
+# Work in platform-specific environment with session management
+npm run open-session "performance-optimization"
+
+# Work with platform-specific .cursorrules and MCP settings...
+# Document work in session-notes.md...
+
+# Close session and generate documentation
+npm run close-session
+
+# Return to monorepo root
+set-context
+```
+
+### Available Commands:
+- **`source scripts/set-context.sh <platform>`**: Set context and cd to platform
+- **`source scripts/set-context.sh <platform> --skip-install`**: Set context without npm install
+- **`source scripts/set-context.sh`**: Restore monorepo root configuration
+- **`npm run context-status`**: Check current active context
+- **`source scripts/context-aliases.sh`**: Load convenient aliases
+
+### How It Works:
+1. **Initialize**: Always restores root configs first (removes any existing symlinks)
+2. **Backup**: Original monorepo configs are backed up (only once)
+3. **Symlink**: Platform-specific configs are symlinked to root
+4. **Directory**: Working directory changes to platform folder
+5. **Install**: npm install runs in platform workspace (unless --skip-install)
+6. **Restore**: Unset restores original configs and returns to root
+
+## Session Management System
+
+### Session Workflow:
+1. **Open Session**: `npm run open-session <session-name>` (in platform workspace)
+2. **Work in Session**: Use session-specific rules and document in session-notes.md
+3. **Close Session**: `npm run close-session` - generates comprehensive documentation
+
+### Session Documentation Structure:
+```
+session-logs/YYYY-MM-DD_HH-MM-SS_session-name/
+├── .cursorrules           # Session-specific rules (editable)
+├── session-notes.md       # Manual notes and observations
+├── chat-history.md        # Chat history for continuation
+├── session-summary.md     # Auto-generated comprehensive summary
+└── session-metadata.json # Session tracking data
+```
+
+### Session Commands (in platform workspace):
+- `npm run open-session <session-name>` - Create dedicated session folder
+- `npm run close-session` - Close session and generate documentation
+- `npm run session-status` - Check active session
+- `npm run list-sessions` - List all sessions
+
+## Development Workflow
+
+### Working with Platforms:
+1. **Set Context**: Use `source scripts/set-context.sh <platform>` to activate platform-specific configuration and navigate to workspace
+2. **Open Session**: Use `npm run open-session <session-name>` for all support work
+3. **Platform-Specific Work**: Use platform and session-specific MCP settings and rules automatically
+4. **Document Work**: All actions documented in session notes and auto-generated summaries
+5. **Close Session**: Use `npm run close-session` to generate comprehensive documentation
+6. **Return to Root**: Use `source scripts/set-context.sh` (no args) to restore monorepo configuration
+7. **Commit Changes**: Always commit from the root level to maintain monorepo integrity
+
+### Git Workflow:
+```bash
+# Always commit from root level
+cd ~/support-staging
+git add .
+git commit -m "feat(platform): description of changes"
+git push origin main
+```
+
+## Best Practices
+
+1. **Platform Isolation**: Each platform workspace is self-contained
+2. **Context Switching**: Always use context system for platform-specific work
+3. **Session Management**: Use session system for all support work
+4. **Rules Protection**: Protect rules when not actively modifying them
+5. **Shared Dependencies**: Common dependencies managed at root level
+6. **Documentation**: Platform-specific docs stay in platform workspace
+7. **MCP Settings**: Platform-specific Redis/service connections in platform MCP settings
+8. **Support Sessions**: Always use session management system for structured documentation
+
+## Troubleshooting
+
+### Workspace Issues:
+```bash
+# Reinstall all workspace dependencies
+npm run clean --workspaces
+npm run install:all
+
+# Check workspace configuration
+npm ls --workspaces
+
+# Verify platform structure
+ls -la platforms/*/
+```
+
+### Context Switching Issues:
+```bash
+# Check current context
+npm run context-status
+
+# Reset to root configuration
+source scripts/set-context.sh
+
+# Check rules protection status
+npm run rules-status
+```
+
+### Session Management Issues:
+```bash
+# Check active session (in platform workspace)
+npm run session-status
+
+# List all sessions
+npm run list-sessions
+
+# Force close session if needed
+rm .active-session
+```
+
+## Security and Safety
+
+- **Rules Protection**: Prevents accidental modification of critical .cursorrules files
+- **Context Isolation**: Platform configurations don't interfere with each other
+- **Session Isolation**: Each support session has its own rules and documentation context
+- **Backup System**: Original configurations are always preserved and restorable
+- **Structured Documentation**: All support work is automatically documented with timestamps and metadata
+
+## Project Context
+
+This monorepo supports multiple staging environments with platform-specific infrastructure, services, and troubleshooting procedures. Each platform workspace contains complete documentation and tools for that specific environment.
+
+The system enforces structured workflows through context switching, session management, and rules protection to ensure consistent documentation and prevent accidental modifications to critical configuration files.

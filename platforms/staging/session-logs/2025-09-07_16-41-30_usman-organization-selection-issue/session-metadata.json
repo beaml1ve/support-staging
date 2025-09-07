@@ -1,0 +1,18 @@
+{
+  "sessionId": "2025-09-07_16-41-30_usman-organization-selection-issue",
+  "sessionName": "usman-organization-selection-issue",
+  "platform": "staging",
+  "startTime": "2025-09-07T16:41:30.908Z",
+  "endTime": "2025-09-07T21:45:42.807Z",
+  "status": "closed",
+  "objective": "usman-organization-selection-issue",
+  "files": {
+    "rules": ".cursorrules",
+    "notes": "session-notes.md",
+    "chatHistory": "chat-history.md",
+    "summary": "session-summary.md"
+  },
+  "tags": [],
+  "participants": [],
+  "duration": "5h 4m"
+}
