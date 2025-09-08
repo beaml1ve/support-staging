@@ -2,8 +2,9 @@
 
 const fs = require('fs');
 const path = require('path');
+const SlackNotifier = require('../../slack-webhook/scripts/slack-notifier');
 
-const PLATFORM_NAME = process.argv[2] || 'staging'; // Default to staging if not specified
+const PLATFORM_NAME = process.argv[3] || 'staging'; // Default to staging if not specified
 const REPO_ROOT = path.resolve(__dirname, '../..');
 const PLATFORM_DIR = path.join(REPO_ROOT, 'platforms', PLATFORM_NAME);
 const SESSIONS_DIR = path.join(PLATFORM_DIR, 'session-logs');
@@ -92,7 +93,7 @@ function generateSessionSummary(sessionFolder, metadata) {
 - **Start Time**: ${metadata?.startTime || 'Unknown'}
 - **End Time**: ${metadata?.endTime || new Date().toISOString()}
 - **Duration**: ${metadata?.duration || 'Unknown'}
-- **Platform**: ${metadata?.platform || PLATFORM_NAME}
+- **Platform**: ${metadata?.platform || 'staging'}
 - **Status**: ${metadata?.status || 'closed'}
 
 ## Session Summary
@@ -190,7 +191,7 @@ To continue this session later or transfer knowledge:
 
 ## Technical Details
 - **Session Folder**: ${sessionFolder}
-- **Platform**: ${PLATFORM_NAME}
+- **Platform**: staging
 - **Session Duration**: See session-metadata.json
 - **Session Rules**: Available in .cursorrules file
 - **Session Notes**: Available in session-notes.md file
@@ -234,7 +235,35 @@ function clearActiveSession() {
   }
 }
 
-function closeSession() {
+async function sendSlackNotification(sessionFolder, metadata) {
+  try {
+    const notifier = new SlackNotifier();
+    
+    if (!notifier.isEnabled()) {
+      console.log('ℹ️  Slack notifications not configured (skipping)');
+      return;
+    }
+
+    // Read session notes for content extraction
+    const notesFile = path.join(sessionFolder, 'session-notes.md');
+    let notesContent = '';
+    if (fs.existsSync(notesFile)) {
+      notesContent = fs.readFileSync(notesFile, 'utf8');
+    }
+
+    const sessionData = SlackNotifier.extractSessionData(sessionFolder, metadata, notesContent);
+    const success = await notifier.sendSessionSummary(sessionData);
+    
+    if (success) {
+      console.log('📢 Session summary sent to Slack channel');
+    }
+  } catch (error) {
+    console.warn('⚠️  Failed to send Slack notification:', error.message);
+    console.log('💡 Session closed successfully, but Slack notification failed');
+  }
+}
+
+async function closeSession() {
   console.log(`🔄 Closing active support session...`);
   
   const { sessionId, sessionFolder } = getActiveSession();
@@ -249,6 +278,9 @@ function closeSession() {
   generateSessionSummary(sessionFolder, metadata);
   generateChatHistory(sessionFolder);
   archiveSessionRules(sessionFolder);
+  
+  // Send Slack notification (optional)
+  await sendSlackNotification(sessionFolder, metadata);
   
   // Clear active session
   clearActiveSession();
@@ -275,4 +307,7 @@ function closeSession() {
   console.log('   npm run open-session <name> - Start a new session');
 }
 
-closeSession();
+closeSession().catch(error => {
+  console.error('❌ Error closing session:', error.message);
+  process.exit(1);
+});

@@ -1,0 +1,7 @@
+{
+  "webhookUrl": "https://hooks.slack.com/services/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",
+  "channel": "#customer-support",
+  "enabled": true,
+  "notifyOnClose": true,
+  "notifyOnError": false
+}

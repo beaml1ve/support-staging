@@ -4,9 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const SESSION_NAME = process.argv[2];
-const PLATFORM_NAME = process.argv[3] || 'staging'; // Default to staging if not specified
-const REPO_ROOT = path.resolve(__dirname, '../..');
-const PLATFORM_DIR = path.join(REPO_ROOT, 'platforms', PLATFORM_NAME);
+const PLATFORM_DIR = path.resolve(__dirname, '..');
 const SESSIONS_DIR = path.join(PLATFORM_DIR, 'session-logs');
 const PLATFORM_CURSORRULES = path.join(PLATFORM_DIR, '.cursorrules');
 
@@ -92,7 +90,7 @@ function createSessionFiles(sessionFolder, sessionName) {
 
 **Session ID**: ${sessionId}  
 **Started**: ${new Date().toISOString()}  
-**Platform**: ${PLATFORM_NAME}
+**Platform**: staging
 
 ## Objective
 ${sessionName ? `Session focus: ${sessionName}` : 'Document the main objective of this session'}
@@ -142,7 +140,7 @@ ${sessionName ? `Session focus: ${sessionName}` : 'Document the main objective o
   const metadata = {
     sessionId: sessionId,
     sessionName: sessionName || 'Support Session',
-    platform: PLATFORM_NAME,
+    platform: 'staging',
     startTime: new Date().toISOString(),
     endTime: null,
     status: 'active',
@@ -177,7 +175,7 @@ function createSessionChatPrompt(sessionFolder, sessionName) {
 
 **Session ID**: ${sessionId}  
 **Session Name**: ${sessionName || 'Support Session'}  
-**Platform**: ${PLATFORM_NAME}  
+**Platform**: staging  
 **Started**: ${new Date().toISOString()}
 
 ## Session Context for AI Assistant
@@ -188,7 +186,7 @@ This is a dedicated support session with the following context:
 ${sessionName ? `Working on: ${sessionName}` : 'General support session'}
 
 ### Session Environment
-- **Platform**: ${PLATFORM_NAME.charAt(0).toUpperCase() + PLATFORM_NAME.slice(1)} environment (beamdevlive ecosystem)
+- **Platform**: Staging environment (beamdevlive ecosystem)
 - **Infrastructure**: Redis BDS, PostgreSQL, Apache2, PM2 microservices
 - **Session Folder**: \`${sessionFolder}\`
 - **Session Rules**: Available in \`.cursorrules\` file in this session folder
@@ -205,10 +203,12 @@ ${sessionName ? `Working on: ${sessionName}` : 'General support session'}
 3. **Session Rules**: Follow the .cursorrules file in this session folder
 4. **File Management**: All session work should reference this session folder
 5. **Continuation**: This chat history will be saved for session continuation
+6. **Slack Integration**: Session summaries will be sent to Slack when closed (if configured)
 
 ### Session Commands Available
-- \`npm run close-session\` - Close this session and generate documentation
+- \`npm run close-session\` - Close this session and generate documentation (+ Slack notification)
 - \`npm run session-status\` - Check current session status
+- \`cd ../../ && npm run slack-test\` - Test Slack integration (slack-webhook workspace)
 - Edit session files as needed for this specific support work
 
 ---
@@ -237,6 +237,7 @@ function displayChatInstructions(sessionFolder, sessionName) {
   console.log('   • Session-specific rules and environment');
   console.log('   • Proper documentation workflow');
   console.log('   • Continuation support for complex issues');
+  console.log('   • Slack integration for team notifications');
   console.log('');
   console.log('📄 Session Chat Prompt File:');
   console.log(`   ${path.join(sessionFolder, 'session-chat-prompt.md')}`);
@@ -287,17 +288,22 @@ function openSession(sessionName) {
   console.log('   1. Start a new chat using session-chat-prompt.md');
   console.log('   2. Edit session-notes.md to document your work');
   console.log('   3. Modify .cursorrules if needed for this session');
-  console.log('   4. Use npm run close-session when finished');
+  console.log('   4. Use npm run close-session when finished (auto-notifies Slack)');
+  console.log('');
+  console.log('🔧 Slack Integration:');
+  console.log('   • Session summaries will be sent to Slack when closed');
+  console.log('   • Configure SLACK_WEBHOOK_URL or slack-webhook/slack-config.json');
+  console.log('   • Test with: cd ../../ && npm run slack-test');
   console.log('');
   console.log(`📂 Session folder: ${sessionFolder}`);
 }
 
 if (!SESSION_NAME) {
-  console.error('❌ Usage: npm run open-session <session-name> [platform]');
+  console.error('❌ Usage: npm run open-session <session-name>');
   console.error('📋 Examples:');
   console.error('   npm run open-session "redis-performance-issue"');
-  console.error('   npm run open-session "redis-performance-issue" staging');
-  console.error('💡 Platform defaults to "staging" if not specified');
+  console.error('   npm run open-session "api-admin-core-errors"');
+  console.error('   npm run open-session "slack-integration-setup"');
   process.exit(1);
 }
 

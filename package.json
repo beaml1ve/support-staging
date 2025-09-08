@@ -5,7 +5,8 @@
   "private": true,
   "workspaces": [
     "platforms/*",
-    "utilities/*"
+    "utilities/*",
+    "slack-webhook"
   ],
   "scripts": {
     "preinstall": "node scripts/validate-sparse-checkout.js --quiet",
@@ -34,7 +35,13 @@
     "pm2-info": "node pm2/scripts/pm2m info",
     "pm2-logs": "node pm2/scripts/pm2m logs",
     "pm2-daemon-restart": "node pm2/scripts/pm2-daemon-restart.js",
-    "pm2-test": "node pm2/scripts/pm2-test-runner.js"
+    "pm2-test": "node pm2/scripts/pm2-test-runner.js",
+    "slack-notify": "npm run notify --workspace=slack-webhook --",
+    "slack-test": "npm run test --workspace=slack-webhook",
+    "slack-setup": "npm run setup --workspace=slack-webhook",
+    "slack-validate": "npm run validate-config --workspace=slack-webhook",
+    "slack-cleanup": "npm run cleanup-duplicates --workspace=slack-webhook",
+    "slack-cleanup-dry": "npm run cleanup-duplicates-dry --workspace=slack-webhook"
   },
   "dependencies": {
     "pm2": "^5.4.3"

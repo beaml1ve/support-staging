@@ -1,3 +1,13 @@
+# ARCHIVED SESSION RULES
+# Session closed on: 2025-09-08T13:13:58.268Z
+# These rules were active during the session and are preserved for reference
+# Session ID: 2025-09-08_11-56-14_api-admin-core-dev-errors-20250908
+
+# Session-Specific Rules
+# This file contains rules active during this support session
+# Original platform rules copied and can be modified for this session context
+# Session ID: 2025-09-08_11-56-14_api-admin-core-dev-errors-20250908
+
 # Support Staging Monorepo Rules
 
 ## Monorepo Structure
@@ -57,89 +67,11 @@ support-staging/                 # Root monorepo
         └── pm2-restart/       # PM2 management scripts
 ```
 
-## Platform Configuration
-
-### **Staging Environment (beamdevlive ecosystem)**
-
-#### **Environment-Specific Configuration**
-- **Ecosystem Name**: `beamdevlive`
-- **Redis BDS**: `10.128.0.21:6379` (main BDS instance)
-- **Redis BDS Alt**: `10.128.0.21:6380` (alternative port)
-- **MQTT Broker**: `localhost:1883`
-- **MQTT Credentials**: 
-  - Username: `explorer`
-  - Password: `beamL1ve`
-
-#### **Platform Services**
-- **Apache2**: Web server and reverse proxy
-- **PostgreSQL**: Database clusters (versions 9.6 and 14)
-- **Redis HA**: High availability Redis instances
-- **Mosquitto**: MQTT message broker
-- **Tile38**: Geospatial database (10.128.0.11:9851)
-
-#### **Microservices**
-- **Count**: 260+ Node.js services managed by PM2
-- **Management**: PM2 process manager with ecosystem configuration
-- **Logs**: Accessible via `pm2m logs <service-name>` with time filtering
-- **Monitoring**: Health checks and status monitoring via PM2
-
-### **Investigation Commands and Tools**
-
-#### **System Health Commands**
-```bash
-# OS Health Check
-uptime && free -h && df -h / && iostat 1 1
-
-# Platform Services Status
-systemctl status apache2 postgresql redis mosquitto tile38 --no-pager
-
-# Redis BDS Connection Test
-redis-cli -h 10.128.0.21 -p 6379 ping
-```
-
-#### **Microservice Investigation**
-```bash
-# PM2 Service Status
-pm2 list | grep <service-name>
-pm2 show <pm2-id>
-
-# Log Analysis with Time Filtering
-../../pm2/scripts/pm2m logs <service-name> --from now-12h --to now
-../../pm2/scripts/pm2m logs <service-name> --from now-1d --to now | grep -E "error|Error|failed|Failed"
-```
-
-#### **Workflow Analysis Commands**
-```bash
-# Find Workflow ID from Logs
-../../pm2/scripts/pm2m logs work-admin-dev --from now-12h --to now | grep -E "workflow.*created|LOG.*registerUserByAdmin"
-
-# Retrieve Complete Workflow (Source + Runtime)
-redis-cli -h 10.128.0.21 -p 6379 JSON.GET "beamdevlive:workflow:<workflowId>:work-admin"
-
-# Filter Workflow State Transitions
-../../pm2/scripts/pm2m logs work-admin-dev --from now-12h --to now | grep "LOG.*registerUserByAdmin" | head -20
-```
-
-#### **MQTT Testing Commands**
-```bash
-# Generate UUID for Request
-REQUEST_ID=$(uuidgen)
-
-# Subscribe to Reply Topic
-mosquitto_sub -h localhost -p 1883 -u explorer -P beamL1ve -t "beamdevlive/service/work-admin/service/<org-service>/register/reply" -C 1 &
-
-# Publish Request
-mosquitto_pub -h localhost -p 1883 -u explorer -P beamL1ve -t "beamdevlive/service/work-admin/service/<org-service>/register" -m '{"id":"'$REQUEST_ID'","pattern":"beamdevlive/service/work-admin/service/<org-service>/register","data":{...}}'
-```
-
-### **Platform-Specific Investigation Lessons**
-
-#### **Admin Registration Troubleshooting (beamdevlive ecosystem)**
-- **force1FR Flag Check**: Always verify `force1FR: true` for admin-initiated registrations
-- **TypeId 2 Issues**: 2FA registrations require proper force1FR handling
-- **Common Error Pattern**: `"user with ids cannot be created"` often indicates force1FR: false issue
-- **Security Working**: Services rejecting unverified 2FA are functioning correctly
-- **Investigation Priority**: Check authentication parameters before assuming service bugs
+## Available Platforms
+- **platforms/staging**: Staging environment (beamdevlive ecosystem)
+  - Redis BDS: 10.128.0.21:6379
+  - Platform services: Apache2, PostgreSQL, Redis HA, Mosquitto, Tile38
+  - Microservices: 260+ Node.js services managed by PM2
 
 ## Workspace Commands
 
@@ -297,3 +229,30 @@ rm .active-session
 This monorepo supports multiple staging environments with platform-specific infrastructure, services, and troubleshooting procedures. Each platform workspace contains complete documentation and tools for that specific environment.
 
 The system enforces structured workflows through context switching, session management, and rules protection to ensure consistent documentation and prevent accidental modifications to critical configuration files.
+
+## Session-Specific Investigation Methodology
+
+### **Proven Investigation Chain** (from this session)
+1. **System Health**: OS → Platform Services → Microservices
+2. **Log Correlation**: Use time-based filtering across multiple services
+3. **Workflow Analysis**: Retrieve complete workflow from workflow BDS (single source)
+4. **MQTT Testing**: Live validation of service communication
+5. **Root Cause**: Trace through complete service chain to actual bug location
+
+### **Key Commands Used in This Session**
+```bash
+# Workflow Investigation
+redis-cli -h 10.128.0.21 -p 6379 JSON.GET "beamdevlive:workflow:389854:work-admin"
+
+# Log Analysis
+../../pm2/scripts/pm2m logs work-admin-dev --from now-12h --to now | grep "LOG.*registerUserByAdmin"
+../../pm2/scripts/pm2m logs org-saferide-africa-dev --from now-12h --to now | grep -E "register|error"
+
+# MQTT Testing
+mosquitto_pub -h localhost -p 1883 -u explorer -P beamL1ve -t "beamdevlive/service/work-admin/service/org-saferide-africa/register" -m '{"id":"uuid","pattern":"topic","data":{...}}'
+```
+
+### **Session Findings**
+- **Root Cause**: org-saferide-africa-dev CudbCoreService registration logic bug
+- **Methodology**: Workflow BDS contains complete source + runtime data (no config BDS needed)
+- **Validation**: MQTT testing confirmed log analysis findings

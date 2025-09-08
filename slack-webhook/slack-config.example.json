@@ -1,0 +1,13 @@
+{
+  "webhookUrl": "https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK",
+  "webhookUrlDev": "https://hooks.slack.com/services/YOUR/DEV/WEBHOOK",
+  "channel": "#customer-support",
+  "channelDev": "#dev-testing",
+  "enabled": true,
+  "preventDuplicates": true,
+  "dryRun": false,
+  "notifyOnClose": true,
+  "notifyOnError": false,
+  "maxRetries": 3,
+  "retryDelay": 1000
+}

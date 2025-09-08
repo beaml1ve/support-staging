@@ -1,0 +1,44 @@
+{
+  "name": "@support-staging/slack-webhook",
+  "version": "1.0.0",
+  "description": "Slack webhook integration for support session notifications",
+  "private": true,
+  "main": "scripts/slack-notifier.js",
+  "scripts": {
+    "notify": "node scripts/slack-notifier.js",
+    "test": "echo 'Testing Slack integration...' && node scripts/slack-notifier.js $(find ../platforms -name 'session-logs' -type d | head -1)/$(ls $(find ../platforms -name 'session-logs' -type d | head -1) | tail -1)",
+    "setup": "echo 'See SLACK_SETUP.md for configuration instructions'",
+    "validate-config": "node -e \"const SlackNotifier = require('./scripts/slack-notifier'); const notifier = new SlackNotifier(); console.log('Webhook configured:', notifier.isEnabled() ? 'Yes ✅' : 'No ❌'); if (!notifier.isEnabled()) { console.log('💡 Set SLACK_WEBHOOK_URL or edit slack-config.json'); }\"",
+    "test-full": "echo 'Testing full session summary to Slack...' && node scripts/slack-notifier.js $(find ../platforms -name 'session-logs' -type d | head -1)/$(ls $(find ../platforms -name 'session-logs' -type d | head -1) | tail -1)",
+    "test-dev": "SLACK_DEV_MODE=true npm test",
+    "test-dry": "SLACK_DRY_RUN=true npm test",
+    "test-skip-prod": "SLACK_SKIP_PRODUCTION=true npm test",
+    "cleanup-duplicates": "node scripts/slack-cleanup.js",
+    "cleanup-duplicates-dry": "node scripts/slack-cleanup.js",
+    "cleanup-help": "echo 'Slack Cleanup Help:' && echo '' && echo '1. Create bot token at https://api.slack.com/apps' && echo '2. Add scopes: chat:write, channels:history, groups:history' && echo '3. Install bot to workspace' && echo '4. Add bot to channel: /invite @YourBotName' && echo '5. Get channel ID from channel URL' && echo '' && echo 'Usage:' && echo 'SLACK_BOT_TOKEN=xoxb-token SLACK_CHANNEL_ID=C123 npm run cleanup-duplicates-dry'"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  },
+  "keywords": [
+    "slack",
+    "webhook",
+    "notifications",
+    "support",
+    "sessions",
+    "integration"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/beaml1ve/support-staging.git",
+    "directory": "slack-webhook"
+  },
+  "author": "Beam Live Support Team",
+  "license": "MIT",
+  "workspace": {
+    "name": "slack-webhook",
+    "type": "utility",
+    "description": "Slack webhook integration for cross-platform session notifications"
+  }
+}

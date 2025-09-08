@@ -94,7 +94,112 @@ session-logs/YYYY-MM-DD_HH-MM-SS_session-name/
 - **Log File Access**: When microservices are running in PM2 mode, the location of the logs can be retrieved from the PM2 daemon using `service.pm2_env.pm_out_log_path` and `service.pm2_env.pm_err_log_path`. The log rotation compresses log files with `.gz` extension.
 - **Log Processing**: When microservices are under PM2 management, use `pm2m logs <service-name>` command with time filters to process microservice logs. This command merges compressed and uncompressed log files chronologically, prefixes entries with log type ([OUT]/[ERR]), and supports Grafana-style time expressions (e.g., `pm2m logs service-name --from now-2d --to now`).
 
-### 5. **Workspace Isolation**
+### 5. **Workflow Analysis and MQTT Communication Rules**
+
+#### **Redis Workflow BDS Analysis**
+- **Workflow BDS**: Running workflow instances stored with pattern `beamdevlive:workflow:objectId:serviceId`
+- **Complete Source**: Workflow BDS objects contain both runtime data AND complete workflow source code
+- **Key Retrieval**: Use `JSON.GET` for Redis JSON documents, not standard `GET`
+- **Efficient Analysis**: No need to check config BDS separately - workflow BDS has everything needed
+
+#### **Workflow Step Analysis**
+- **Declarative Structure**: Workflows are JSON configurations with `transitions`, `dataset`, and `sensors`
+- **State Flow**: Each transition has `condition`, `updates`, `execute`, `publish`, `log`, and `catch` sections
+- **Dataset Context**: Contains `input`, `local`, and `output` sections for workflow variables
+- **Dynamic Evaluation**: Use JavaScript `eval` expressions for runtime payload generation
+- **State Tracking**: Monitor workflow progression through status changes in `dataset.output.status`
+
+#### **Workflow Step Evaluation**
+- **Payload Generation**: Use `payload.eval` expressions to dynamically create MQTT payloads
+- **URI Construction**: Dynamic URI generation using template literals with dataset variables
+- **Context Variables**: Access workflow data through `dataset.local`, `dataset.input`, `dataset.output`
+- **Error Handling**: `catch` blocks automatically transition to error states (e.g., `79-error`)
+- **Log Messages**: Dynamic log generation using `message.eval` expressions
+
+#### **MQTT Message Publishing and Subscribing Rules**
+
+##### **Topic Structure**
+- **Pattern**: `ecosystem/sourceType/sourceId/destinationType/destinationId/topicBody`
+- **Example**: `beamdevlive/service/work-admin/service/org-saferide-africa/register`
+- **Reply Topics**: Append `/reply` to the original topic for responses
+
+##### **Message Formats**
+
+**Broadcast Format** (No reply expected):
+```json
+{
+  "userIds": [...],
+  "deviceIds": [...],
+  "authTypeParams": [...]
+}
+```
+
+**Request Format** (Reply expected):
+```json
+{
+  "id": "uuid-v4-generated",
+  "pattern": "full/topic/path",
+  "data": {
+    "userIds": [...],
+    "deviceIds": [...],
+    "authTypeParams": [...]
+  }
+}
+```
+
+##### **MQTT Commands**
+- **Subscribe**: `mosquitto_sub -h host -p port -u user -P password -t "topic" -v`
+- **Publish**: `mosquitto_pub -h host -p port -u user -P password -t "topic" -m "payload"`
+- **Subscribe Options**: 
+  - `-C 1`: Exit after receiving 1 message
+  - `-W seconds`: Wait timeout
+  - `-v`: Verbose (show topic with message)
+- **UUID Generation**: Use `uuidgen` for request IDs
+
+##### **Reply Handling**
+- **Correlation**: Replies contain the same `id` as the request
+- **Error Format**: `{"err": {"data": {...}, "status": false, "message": "..."}, "isDisposed": true, "id": "..."}`
+- **Success Format**: `{"response": [...], "status": true, "id": "..."}`
+
+### 6. **Troubleshooting Protocol and Investigation Methodology**
+
+#### **Systematic Troubleshooting Protocol**
+- **MANDATORY**: When a new issue appears, follow this order:
+  1. **OS Health Check**: System resources, uptime, disk space, memory usage
+  2. **Platform Services Health**: Redis, PostgreSQL, Apache2, Mosquitto, Tile38
+  3. **Microservices Health**: PM2 status, service-specific health checks
+  4. **Service Chain Analysis**: Trace errors through complete communication chain
+
+#### **Error Investigation Chain**
+- **Log Correlation**: Use time-based filtering to correlate errors across multiple services
+- **Service Dependencies**: Understand complete request flow (API → Workflow → MQTT → Target Service)
+- **Don't Stop at Symptoms**: Trace errors to their actual source, not just where they're reported
+- **Validate with Testing**: Use live MQTT testing to confirm findings
+
+#### **Workflow Investigation Best Practices**
+- **Efficient Analysis**: Use workflow BDS directly - contains both source code and runtime data
+- **State Progression**: Track workflow through actual state transitions using LOG entries
+- **Dataset Analysis**: Examine input, local, and output datasets for complete context
+- **Error Correlation**: Match workflow errors with target service logs using timestamps
+
+#### **MQTT Communication Testing**
+- **Live Validation**: Always test actual MQTT communication to validate log analysis
+- **Proper Format**: Use request format with UUID correlation for replies
+- **Topic Structure**: Follow `ecosystem/sourceType/sourceId/destinationType/destinationId/topicBody` pattern
+- **Authentication**: Use proper credentials for MQTT broker access
+
+#### **Key Investigation Lessons Learned**
+
+##### **Admin Registration and force1FR Flag (Session: 2025-09-08)**
+- **Critical Learning**: When investigating admin-initiated user registration failures, check the `force1FR` flag
+- **TypeId 2 Authentication**: 2-Factor Authentication requires email/phone verification via OTP
+- **Admin Limitation**: Admins have no access to user's email/phone for verification channels
+- **force1FR Purpose**: Must be `true` for admin registrations to bypass verification requirements
+- **Common Mistake**: Workflow invoked with `force1FR: false` causes legitimate security rejection
+- **Investigation Trap**: Don't assume service logic bug - verify authentication parameters first
+- **Security Validation**: Services correctly enforcing 2FA requirements are working properly
+
+### 7. **Workspace Isolation**
 - **Platform Independence**: Each platform workspace is completely self-contained
 - **Configuration Isolation**: Platform-specific .cursorrules and MCP settings
 - **Dependency Management**: Platform-specific package.json and dependencies
@@ -112,24 +217,41 @@ support-staging/                 # Root monorepo
 │   ├── unset-context.sh       # Legacy unset script
 │   ├── context-aliases.sh     # Convenient aliases
 │   └── protect-rules.js       # Rules protection system
+├── session/                   # Session management scripts
+│   └── scripts/
+│       ├── open-session.js    # Create new support sessions
+│       ├── close-session.js   # Close sessions with Slack integration
+│       ├── session-status.js  # Check session status
+│       └── list-sessions.js   # List all sessions
+├── slack-webhook/             # Slack integration workspace
+│   ├── package.json           # Slack workspace package.json
+│   ├── scripts/
+│   │   └── slack-notifier.js  # Slack notification module
+│   ├── slack-config.json      # Slack webhook configuration
+│   ├── SLACK_SETUP.md         # Setup documentation
+│   └── README.md              # Workspace documentation
 └── platforms/                 # Platform-specific workspaces
     └── staging/               # Staging platform workspace
         ├── package.json       # Workspace-specific package.json
         ├── .cursor/           # Platform-specific MCP settings
         │   └── mcp_settings.json
         ├── .cursorrules       # Platform-specific rules
-        ├── scripts/           # Platform session management
-        │   ├── open-session.js
-        │   └── close-session.js
         ├── session-logs/      # Support session documentation
-        └── pm2-restart/       # PM2 management scripts
 ```
 
 ## Available Platforms
-- **platforms/staging**: Staging environment (beamdevlive ecosystem)
-  - Redis BDS: 10.128.0.21:6379
-  - Platform services: Apache2, PostgreSQL, Redis HA, Mosquitto, Tile38
-  - Microservices: 260+ Node.js services managed by PM2
+- **platforms/staging**: Staging environment workspace
+  - Platform-specific configuration in platform .cursorrules
+  - Platform services and connection details in platform workspace
+  - Microservices managed per platform configuration
+
+## Slack Integration
+- **Dedicated workspace**: `slack-webhook` workspace for cross-platform notifications
+- **Configuration**: Set `SLACK_WEBHOOK_URL` environment variable or create `slack-webhook/slack-config.json`
+- **Auto-notifications**: Session summaries automatically sent to Slack when sessions close
+- **Manual notifications**: Use `npm run slack-notify <session-folder>` or `npm run slack-test`
+- **Validation**: Use `npm run slack-validate` to check configuration
+- **Documentation**: See `slack-webhook/SLACK_SETUP.md` for complete setup instructions
 
 ## Workspace Commands
 
@@ -150,6 +272,12 @@ npm run clean --workspaces
 npm run protect-rules <target>     # Protect rules (root, staging, all)
 npm run unprotect-rules <target>   # Unprotect rules
 npm run rules-status               # Show protection status
+
+# Slack integration (slack-webhook workspace)
+npm run slack-test                 # Test Slack integration with latest session
+npm run slack-notify <session>     # Send specific session to Slack
+npm run slack-validate             # Validate Slack webhook configuration
+npm run slack-setup                # Show Slack setup instructions
 ```
 
 ### Platform-Specific Work:
