@@ -3,11 +3,11 @@
 const pm2 = require('pm2');
 const fs = require('fs');
 const path = require('path');
-const PM2Manager = require('./pm2-manager');
+const PM2Manager = require('./pm2m');
 
 function detectActivePlatform() {
   try {
-    // Get the repository root (assuming we're in pm2-restart/scripts/)
+    // Get the repository root (assuming we're in pm2/scripts/)
     const repoRoot = path.resolve(__dirname, '../..');
     const platformsDir = path.join(repoRoot, 'platforms');
     

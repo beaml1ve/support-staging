@@ -70,7 +70,7 @@ function parseGrafanaTime(timeExpr) {
 
 function detectActivePlatform() {
   try {
-    // Get the repository root (assuming we're in pm2-restart/scripts/)
+    // Get the repository root (assuming we're in pm2/scripts/)
     const repoRoot = path.resolve(__dirname, '../..');
     const platformsDir = path.join(repoRoot, 'platforms');
     
@@ -1103,10 +1103,11 @@ class PM2Manager {
       console.log('');
 
       for (const entry of filteredEntries) {
-        // Format: [timestamp] [file] line
+        // Format: [timestamp] [type] [file] line
         const timestamp = new Date(entry.timestamp).toISOString();
         const fileName = path.basename(entry.source);
-        console.log(`[${timestamp}] [${fileName}] ${entry.line}`);
+        const logType = entry.type === 'output' ? 'OUT' : 'ERR';
+        console.log(`[${timestamp}] [${logType}] [${fileName}] ${entry.line}`);
       }
 
     } catch (error) {
@@ -1328,7 +1329,7 @@ async function main() {
   if (!command) {
     console.log('PM2 Manager - JavaScript Implementation');
     console.log('');
-    console.log('Usage: node pm2-manager.js [platform] <command> [options]');
+    console.log('Usage: pm2m [platform] <command> [options]');
     console.log('');
     console.log('Platforms:');
     console.log('  Auto-detected from platforms/ directory (sparse checkout aware)');
@@ -1358,29 +1359,29 @@ async function main() {
     console.log('');
     console.log('Examples:');
     console.log('  # State management (auto-detected platform)');
-    console.log('  node pm2-manager.js save');
-    console.log('  node pm2-manager.js restore');
-    console.log('  node pm2-manager.js show');
-    console.log('  node pm2-manager.js list');
+    console.log('  pm2m save');
+    console.log('  pm2m restore');
+    console.log('  pm2m show');
+    console.log('  pm2m list');
     console.log('');
     console.log('  # Service management (auto-detected platform)');
-    console.log('  node pm2-manager.js start cudb-test-dev');
-    console.log('  node pm2-manager.js stop org-notaxi-dev');
-    console.log('  node pm2-manager.js restart api-admin-core-dev');
-    console.log('  node pm2-manager.js reload bds-dev');
-    console.log('  node pm2-manager.js info cudb-test-dev      # Get detailed service info with logs');
-    console.log('  node pm2-manager.js logs cudb-test-dev  # Merge all logs chronologically');
-    console.log('  node pm2-manager.js logs cudb-test-dev --from now-2d --to now  # Last 2 days');
-    console.log('  node pm2-manager.js logs cudb-test-dev --from now-1h  # Last hour to now');
+    console.log('  pm2m start cudb-test-dev');
+    console.log('  pm2m stop org-notaxi-dev');
+    console.log('  pm2m restart api-admin-core-dev');
+    console.log('  pm2m reload bds-dev');
+    console.log('  pm2m info cudb-test-dev      # Get detailed service info with logs');
+    console.log('  pm2m logs cudb-test-dev  # Merge all logs chronologically');
+    console.log('  pm2m logs cudb-test-dev --from now-2d --to now  # Last 2 days');
+    console.log('  pm2m logs cudb-test-dev --from now-1h  # Last hour to now');
     console.log('');
     console.log('  # Multiple service management (auto-detected platform)');
-    console.log('  node pm2-manager.js manage restart bds-dev bds2-dev');
-    console.log('  node pm2-manager.js manage stop org-test-dev org-test010-dev');
+    console.log('  pm2m manage restart bds-dev bds2-dev');
+    console.log('  pm2m manage stop org-test-dev org-test010-dev');
     console.log('');
     console.log('  # Override platform explicitly');
-    console.log('  node pm2-manager.js staging save');
-    console.log('  node pm2-manager.js staging start cudb-test-dev');
-    console.log('  node pm2-manager.js production manage restart bds-dev bds2-dev');
+    console.log('  pm2m staging save');
+    console.log('  pm2m staging start cudb-test-dev');
+    console.log('  pm2m production manage restart bds-dev bds2-dev');
     process.exit(1);
   }
 
@@ -1464,7 +1465,7 @@ async function main() {
       case 'logs':
         if (!additionalArgs[0]) {
           console.error('❌ Error: Service name required for logs command');
-          console.error('Usage: node pm2-manager.js logs <service-name> [--from <time>] [--to <time>]');
+          console.error('Usage: pm2m logs <service-name> [--from <time>] [--to <time>]');
           console.error('Time formats: now, now-2d, now-1y, 2024-01-15T10:30:00Z, etc.');
           process.exit(1);
         }

@@ -92,6 +92,7 @@ session-logs/YYYY-MM-DD_HH-MM-SS_session-name/
 - **State Management**: Both Docker and PM2 services require proper state management
 - **Monitoring**: Health checks and monitoring apply to both orchestration types
 - **Log File Access**: When microservices are running in PM2 mode, the location of the logs can be retrieved from the PM2 daemon using `service.pm2_env.pm_out_log_path` and `service.pm2_env.pm_err_log_path`. The log rotation compresses log files with `.gz` extension.
+- **Log Processing**: When microservices are under PM2 management, use `pm2m logs <service-name>` command with time filters to process microservice logs. This command merges compressed and uncompressed log files chronologically, prefixes entries with log type ([OUT]/[ERR]), and supports Grafana-style time expressions (e.g., `pm2m logs service-name --from now-2d --to now`).
 
 ### 5. **Workspace Isolation**
 - **Platform Independence**: Each platform workspace is completely self-contained

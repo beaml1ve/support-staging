@@ -13,16 +13,17 @@
     "close-session": "node ../../session/scripts/close-session.js",
     "session-status": "node ../../session/scripts/session-status.js",
     "list-sessions": "node ../../session/scripts/list-sessions.js",
-    "pm2-save-state": "node ../../pm2-restart/scripts/pm2-manager.js staging save",
-    "pm2-restore-state": "node ../../pm2-restart/scripts/pm2-manager.js staging restore",
-    "pm2-show-state": "node ../../pm2-restart/scripts/pm2-manager.js staging show",
-    "pm2-list-states": "node ../../pm2-restart/scripts/pm2-manager.js staging list",
-    "pm2-start": "node ../../pm2-restart/scripts/pm2-manager.js staging start",
-    "pm2-stop": "node ../../pm2-restart/scripts/pm2-manager.js staging stop",
-    "pm2-restart": "node ../../pm2-restart/scripts/pm2-manager.js staging restart",
-    "pm2-reload": "node ../../pm2-restart/scripts/pm2-manager.js staging reload",
-    "pm2-info": "node ../../pm2-restart/scripts/pm2-manager.js staging info",
-    "pm2-daemon-restart": "node ../../pm2-restart/scripts/pm2-daemon-restart.js staging"
+    "pm2-save-state": "node ../../pm2/scripts/pm2m staging save",
+    "pm2-restore-state": "node ../../pm2/scripts/pm2m staging restore",
+    "pm2-show-state": "node ../../pm2/scripts/pm2m staging show",
+    "pm2-list-states": "node ../../pm2/scripts/pm2m staging list",
+    "pm2-start": "node ../../pm2/scripts/pm2m staging start",
+    "pm2-stop": "node ../../pm2/scripts/pm2m staging stop",
+    "pm2-restart": "node ../../pm2/scripts/pm2m staging restart",
+    "pm2-reload": "node ../../pm2/scripts/pm2m staging reload",
+    "pm2-info": "node ../../pm2/scripts/pm2m staging info",
+    "pm2-logs": "node ../../pm2/scripts/pm2m staging logs",
+    "pm2-daemon-restart": "node ../../pm2/scripts/pm2-daemon-restart.js staging"
   },
   "dependencies": {
     "redis": "^4.6.0"

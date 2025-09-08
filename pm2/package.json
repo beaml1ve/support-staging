@@ -1,0 +1,38 @@
+{
+  "name": "pm2m",
+  "version": "1.0.0",
+  "description": "PM2 state management and daemon restart utilities",
+  "main": "scripts/pm2m",
+  "bin": {
+    "pm2m": "./scripts/pm2m"
+  },
+  "scripts": {
+    "save-state": "node scripts/pm2m save",
+    "restore-state": "node scripts/pm2m restore",
+    "show-state": "node scripts/pm2m show",
+    "list-states": "node scripts/pm2m list",
+    "start-service": "node scripts/pm2m start",
+    "stop-service": "node scripts/pm2m stop",
+    "restart-service": "node scripts/pm2m restart",
+    "reload-service": "node scripts/pm2m reload",
+    "info-service": "node scripts/pm2m info",
+    "manage-services": "node scripts/pm2m manage",
+    "logs": "node scripts/pm2m logs",
+    "daemon-restart": "node scripts/pm2-daemon-restart.js"
+  },
+  "keywords": [
+    "pm2",
+    "state-management",
+    "daemon-restart",
+    "process-management",
+    "staging"
+  ],
+  "author": "Support Team",
+  "license": "MIT",
+  "dependencies": {
+    "pm2": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

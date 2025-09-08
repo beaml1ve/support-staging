@@ -15,6 +15,8 @@ Modern JavaScript implementation of comprehensive PM2 management utilities inclu
 - **Service Information**: Detailed service info with metrics, timestamps, and log files
 - **Log Integration**: PM2 daemon-based log detection with recent entries display
 - **Rotated Logs Support**: Automatic detection and listing of gzipped rotated log files (.gz)
+- **Log Merging**: Chronological merging of all log files for comprehensive debugging
+- **Time Filtering**: Grafana-style time expressions for filtering logs by time period
 - **Async/Await**: Modern JavaScript with proper async handling
 
 ## 📁 Scripts Overview
@@ -72,43 +74,89 @@ node pm2-restart/scripts/pm2-state-manager.js restore
 
 ## 📋 Detailed Usage
 
-### `pm2-manager.js` - Complete PM2 Management
+### `pm2m` - Complete PM2 Management
+
+**Installation:**
+```bash
+# Install globally to use pm2m command anywhere
+npm install -g pm2m
+
+# Or use directly with npx
+npx pm2m <command>
+```
 
 **State Management:**
 ```bash
-node pm2-manager.js save                    # Save current state (auto-detected platform)
-node pm2-manager.js staging save            # Explicit platform override
-node pm2-manager.js save backup-name        # Custom backup name
-node pm2-manager.js restore                 # Restore latest state
-node pm2-manager.js restore /path/to/state  # Specific state file
-node pm2-manager.js show                    # Show current state
-node pm2-manager.js list                    # List available states
+pm2m save                    # Save current state (auto-detected platform)
+pm2m staging save            # Explicit platform override
+pm2m save backup-name        # Custom backup name
+pm2m restore                 # Restore latest state
+pm2m restore /path/to/state  # Specific state file
+pm2m show                    # Show current state
+pm2m list                    # List available states
 ```
 
 **Service Management:**
 ```bash
-node pm2-manager.js start cudb-test-dev     # Start a service (auto-detected platform)
-node pm2-manager.js stop org-notaxi-dev     # Stop a service
-node pm2-manager.js restart bds-dev         # Restart a service
-node pm2-manager.js reload api-admin-core-dev # Reload (zero-downtime)
-node pm2-manager.js info cudb-test-dev      # Get detailed service info with logs
+pm2m start cudb-test-dev     # Start a service (auto-detected platform)
+pm2m stop org-notaxi-dev     # Stop a service
+pm2m restart bds-dev         # Restart a service
+pm2m reload api-admin-core-dev # Reload (zero-downtime)
+pm2m info cudb-test-dev      # Get detailed service info with logs
 ```
 
 **Multiple Service Management:**
 ```bash
-node pm2-manager.js manage restart bds-dev bds2-dev custom-bds-dev  # Auto-detected platform
-node pm2-manager.js manage stop org-test-dev org-test010-dev
-node pm2-manager.js manage start cudb-test-dev cudb-test03-dev
+pm2m manage restart bds-dev bds2-dev custom-bds-dev  # Auto-detected platform
+pm2m manage stop org-test-dev org-test010-dev
+pm2m manage start cudb-test-dev cudb-test03-dev
 ```
 
 **Service Information with Logs:**
 ```bash
-node pm2-manager.js info cudb-test-dev      # Complete service details including:
-                                            # - Process status and metrics
-                                            # - Log file paths and sizes
-                                            # - Recent log entries (last 10 lines)
-                                            # - Both output and error logs
+pm2m info cudb-test-dev      # Complete service details including:
+                             # - Process status and metrics
+                             # - Log file paths and sizes
+                             # - Recent log entries (last 10 lines)
+                             # - Both output and error logs
 ```
+
+**Merge All Log Files (Debugging):**
+```bash
+pm2m logs cudb-test-dev  # Merge all logs chronologically:
+                         # - Combines compressed (.gz) and uncompressed logs
+                         # - Sorts entries by timestamp
+                         # - Prefixes entries with log type ([OUT]/[ERR])
+                         # - Outputs to stdout for piping/searching
+                         # - Perfect for debugging across log rotations
+
+# Time-filtered debugging (Grafana-style time expressions):
+pm2m logs cudb-test-dev --from now-2d --to now     # Last 2 days
+pm2m logs cudb-test-dev --from now-1h              # Last hour to now
+pm2m logs cudb-test-dev --from now-1w --to now-1d  # 1 week ago to 1 day ago
+pm2m logs cudb-test-dev --from "2024-01-15T10:00:00Z" --to "2024-01-15T12:00:00Z"
+
+# Usage examples for debugging:
+pm2m logs cudb-test-dev --from now-1d | grep "ERROR"
+pm2m logs cudb-test-dev --from "2024-01-15" --to "2024-01-16" | grep "timeout"
+pm2m logs cudb-test-dev --from now-2h > recent-logs.txt
+
+# Filter by log type:
+pm2m logs cudb-test-dev --from now-1d | grep "\[ERR\]"  # Only error logs
+pm2m logs cudb-test-dev --from now-1d | grep "\[OUT\]"  # Only output logs
+```
+
+**Output Format:**
+```
+[2025-09-08T10:30:45.123Z] [OUT] [service.out.log] Log entry content
+[2025-09-08T10:30:46.456Z] [ERR] [service.err.log] Error message content
+```
+
+**Time Format Support (Grafana-style):**
+- `now` - Current time
+- `now-5m`, `now-2h`, `now-1d` - Relative time (m=minutes, h=hours, d=days, w=weeks, M=months, y=years)
+- `2024-01-15T10:30:00Z` - Absolute ISO 8601 timestamp
+- `2024-01-15 10:30:00` - Absolute date/time format
 
 **Log Integration Features:**
 - **PM2 Daemon Integration**: Uses PM2 daemon to retrieve actual log file paths via `service.pm2_env.pm_out_log_path` and `service.pm2_env.pm_err_log_path`
@@ -119,6 +167,12 @@ node pm2-manager.js info cudb-test-dev      # Complete service details including
 - **Recent Entries**: Displays last 10 lines from both output and error logs
 - **Large File Handling**: Efficiently reads from end of large log files
 - **Historical Logs**: Lists up to 5 most recent rotated log files with sizes and ages
+- **Chronological Merging**: `logs` command merges all log files in timestamp order with type prefixes
+- **Compressed File Support**: Automatically decompresses .gz files during merging
+- **Timestamp Parsing**: Supports multiple timestamp formats (ISO 8601, syslog, Unix timestamps)
+- **Time-based Filtering**: Filter logs by time period using Grafana-style expressions (now, now-2d, etc.)
+- **Log Type Identification**: Each log entry prefixed with [OUT] or [ERR] for easy filtering
+- **Debugging Ready**: Perfect for searching across log rotations and time periods
 - **Error Handling**: Graceful handling of missing or inaccessible log files
 
 ### `pm2-daemon-restart.js` - Automated Daemon Restart

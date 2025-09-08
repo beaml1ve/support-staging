@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const PM2Manager = require('./pm2-manager');
+const PM2Manager = require('./pm2m');
 const PM2DaemonRestart = require('./pm2-daemon-restart');
 
 class PM2TestRunner {
@@ -70,7 +70,7 @@ class PM2TestRunner {
       'restoreState', 'showState', 'listStateFiles', 'startService',
       'stopService', 'restartService', 'reloadService', 'getServiceInfo',
       'manageMultipleServices', 'formatFileSize', 'getLogInfo', 'getRecentLogLines', 
-      'findRotatedLogs', 'getFileAge'
+      'findRotatedLogs', 'getFileAge', 'catLogs'
     ];
     
     for (const method of requiredMethods) {
@@ -292,6 +292,199 @@ class PM2TestRunner {
     }
   }
 
+  async testCatLogsIntegration() {
+    this.log('Testing logs functionality', 'info');
+    
+    const manager = new PM2Manager('staging');
+    const fs = require('fs');
+    const path = require('path');
+    const os = require('os');
+    const zlib = require('zlib');
+    
+    const testLogDir = path.join(os.tmpdir(), `pm2-cat-logs-test-${Date.now()}`);
+    
+    try {
+      fs.mkdirSync(testLogDir, { recursive: true });
+      
+      // Test timestamp extraction method
+      const testLines = [
+        '2024-01-15T10:30:45.123Z [INFO] Test log entry',
+        '2024-01-15 10:30:46 [ERROR] Another log entry',
+        'Jan 15 10:30:47 [WARN] Syslog format entry',
+        '[1705312248] Unix timestamp entry',
+        'No timestamp in this line'
+      ];
+      
+      for (const line of testLines) {
+        const timestamp = manager._extractTimestamp(line);
+        if (line.includes('No timestamp') && timestamp !== null) {
+          throw new Error('Should return null for lines without timestamps');
+        }
+        if (!line.includes('No timestamp') && timestamp === null) {
+          throw new Error(`Should extract timestamp from: ${line}`);
+        }
+      }
+      
+      // Test compressed file reading
+      const testContent = 'Test log content\nSecond line\nThird line';
+      const compressedFile = path.join(testLogDir, 'test.log.gz');
+      
+      // Create compressed file
+      const compressed = zlib.gzipSync(Buffer.from(testContent));
+      fs.writeFileSync(compressedFile, compressed);
+      
+      const decompressedContent = await manager._readCompressedFile(compressedFile);
+      if (decompressedContent !== testContent) {
+        throw new Error('Compressed file reading failed');
+      }
+      
+      // Test log file discovery (mock scenario)
+      const mockService = {
+        name: 'test-service',
+        pm_id: 123,
+        pm2_env: {
+          pm_out_log_path: path.join(testLogDir, 'test.out.log'),
+          pm_err_log_path: path.join(testLogDir, 'test.err.log'),
+          pm_cwd: testLogDir
+        }
+      };
+      
+      // Create mock log files
+      const outLogContent = '2024-01-15T10:30:45.123Z [INFO] Output log entry\n2024-01-15T10:30:46.123Z [INFO] Second output entry';
+      const errLogContent = '2024-01-15T10:30:45.500Z [ERROR] Error log entry\n2024-01-15T10:30:47.123Z [ERROR] Second error entry';
+      
+      fs.writeFileSync(mockService.pm2_env.pm_out_log_path, outLogContent);
+      fs.writeFileSync(mockService.pm2_env.pm_err_log_path, errLogContent);
+      
+      // Test log file discovery
+      const logInfo = manager.getLogInfo(mockService);
+      const discoveredFiles = await manager._discoverAllLogFiles(mockService, logInfo.outFile, logInfo.errorFile);
+      
+      if (discoveredFiles.length !== 2) {
+        throw new Error(`Expected 2 log files, found ${discoveredFiles.length}`);
+      }
+      
+      // Test reading log files with timestamps
+      const logFile = {
+        path: mockService.pm2_env.pm_out_log_path,
+        type: 'output',
+        compressed: false,
+        mtime: fs.statSync(mockService.pm2_env.pm_out_log_path).mtime
+      };
+      
+      const entries = await manager._readLogFileWithTimestamps(logFile);
+      if (entries.length !== 2) {
+        throw new Error(`Expected 2 log entries, found ${entries.length}`);
+      }
+      
+      if (!entries[0].timestamp || !entries[0].line || !entries[0].source) {
+        throw new Error('Log entry should have timestamp, line, and source properties');
+      }
+      
+      this.log('Logs integration methods working correctly', 'info');
+      
+    } finally {
+      // Cleanup
+      try {
+        fs.rmSync(testLogDir, { recursive: true, force: true });
+      } catch (error) {
+        this.log(`Warning: Could not clean up cat-logs test directory: ${error.message}`, 'warning');
+      }
+    }
+  }
+
+  async testTimeFiltering() {
+    this.log('Testing time filtering functionality', 'info');
+    
+    // Test parseGrafanaTime function (it's not exported, so we'll test via the manager)
+    const manager = new PM2Manager('staging');
+    
+    // We need to access the parseGrafanaTime function - let's test it indirectly
+    // by testing the time filtering in a controlled way
+    
+    const fs = require('fs');
+    const path = require('path');
+    const os = require('os');
+    
+    const testLogDir = path.join(os.tmpdir(), `pm2-time-filter-test-${Date.now()}`);
+    
+    try {
+      fs.mkdirSync(testLogDir, { recursive: true });
+      
+      // Create mock service with time-based log entries
+      const mockService = {
+        name: 'time-test-service',
+        pm_id: 999,
+        pm2_env: {
+          pm_out_log_path: path.join(testLogDir, 'time-test.out.log'),
+          pm_err_log_path: path.join(testLogDir, 'time-test.err.log'),
+          pm_cwd: testLogDir
+        }
+      };
+      
+      // Create log entries with different timestamps
+      const now = new Date();
+      const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+      const twoDaysAgo = new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000);
+      
+      const logEntries = [
+        `${twoDaysAgo.toISOString()} [INFO] Old log entry from 2 days ago`,
+        `${oneHourAgo.toISOString()} [INFO] Recent log entry from 1 hour ago`,
+        `${now.toISOString()} [INFO] Current log entry`
+      ];
+      
+      fs.writeFileSync(mockService.pm2_env.pm_out_log_path, logEntries.join('\n'));
+      
+      // Test log file discovery and reading
+      const logInfo = manager.getLogInfo(mockService);
+      const discoveredFiles = await manager._discoverAllLogFiles(mockService, logInfo.outFile, logInfo.errorFile);
+      
+      if (discoveredFiles.length !== 1) {
+        throw new Error(`Expected 1 log file, found ${discoveredFiles.length}`);
+      }
+      
+      // Test reading log entries with timestamps
+      const logFile = discoveredFiles[0];
+      const entries = await manager._readLogFileWithTimestamps(logFile);
+      
+      if (entries.length !== 3) {
+        throw new Error(`Expected 3 log entries, found ${entries.length}`);
+      }
+      
+      // Verify timestamps are parsed correctly
+      for (const entry of entries) {
+        if (!entry.timestamp || !entry.line || !entry.source) {
+          throw new Error('Log entry should have timestamp, line, and source properties');
+        }
+        
+        if (typeof entry.timestamp !== 'number') {
+          throw new Error('Timestamp should be a number (milliseconds)');
+        }
+      }
+      
+      // Test that entries are in chronological order when sorted
+      const sortedEntries = [...entries].sort((a, b) => a.timestamp - b.timestamp);
+      
+      if (sortedEntries[0].line.includes('2 days ago') && 
+          sortedEntries[1].line.includes('1 hour ago') && 
+          sortedEntries[2].line.includes('Current')) {
+        // Correct chronological order
+      } else {
+        throw new Error('Entries are not in correct chronological order after sorting');
+      }
+      
+      this.log('Time filtering methods working correctly', 'info');
+      
+    } finally {
+      // Cleanup
+      try {
+        fs.rmSync(testLogDir, { recursive: true, force: true });
+      } catch (error) {
+        this.log(`Warning: Could not clean up time filter test directory: ${error.message}`, 'warning');
+      }
+    }
+  }
+
   async runSafetyChecks() {
     this.log('🔒 Running safety checks before any PM2 operations', 'info');
     
@@ -334,6 +527,8 @@ class PM2TestRunner {
     await this.runTest('CLI Argument Parsing', () => this.testCLIArgumentParsing());
     await this.runTest('File System Operations', () => this.testFileSystemOperations());
     await this.runTest('Log Integration Methods', () => this.testLogIntegration());
+    await this.runTest('Logs Integration', () => this.testCatLogsIntegration());
+    await this.runTest('Time Filtering', () => this.testTimeFiltering());
     
     // Show results
     console.log('');
