@@ -154,8 +154,9 @@ class SlackNotifier {
     // Generate message ID for duplicate prevention
     const messageId = this.generateMessageId(sessionData);
     
-    // Check for duplicates
-    if (this.config.preventDuplicates && this.sentMessages.has(messageId)) {
+    // Check for duplicates (can be overridden with SLACK_ALLOW_DUPLICATES=true)
+    const allowDuplicates = process.env.SLACK_ALLOW_DUPLICATES === 'true';
+    if (this.config.preventDuplicates && !allowDuplicates && this.sentMessages.has(messageId)) {
       console.log(`⚠️  Duplicate message prevented for session: ${sessionData.sessionId}`);
       console.log('💡 Use SLACK_ALLOW_DUPLICATES=true to override');
       return false;
@@ -221,8 +222,9 @@ class SlackNotifier {
       fullSummaryContent
     } = sessionData;
 
-    // Extract session name from ID for cleaner display
-    const displayName = sessionName || sessionId.replace(/^\d{4}-\d{2}-\d{2}_\d{2}-\d{2}-\d{2}_/, '');
+    // Use the session folder name directly for the title
+    const folderName = path.basename(sessionFolder);
+    const displayName = folderName;
 
     // Convert markdown to Slack-compatible format
     const slackFormattedContent = this.convertMarkdownToSlack(fullSummaryContent || 'No session summary available');

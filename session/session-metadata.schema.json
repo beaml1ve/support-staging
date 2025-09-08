@@ -1,0 +1,343 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://support-staging.beam.live/schemas/session-metadata.json",
+  "title": "Session Metadata Schema",
+  "description": "Schema for support session metadata files in the support-staging monorepo",
+  "type": "object",
+  "required": [
+    "sessionId",
+    "sessionName",
+    "platform",
+    "startTime",
+    "status",
+    "objective",
+    "files"
+  ],
+  "properties": {
+    "sessionId": {
+      "type": "string",
+      "description": "Unique identifier for the session in format YYYY-MM-DD_HH-MM-SS_session-name",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}_[a-zA-Z0-9-_]+$",
+      "examples": [
+        "2025-09-08_11-56-14_api-admin-core-dev-errors-20250908",
+        "2025-09-07_16-41-30_usman-organization-selection-issue"
+      ]
+    },
+    "sessionName": {
+      "type": "string",
+      "description": "Human-readable name for the session",
+      "minLength": 1,
+      "maxLength": 200,
+      "examples": [
+        "api-admin-core-dev-errors-20250908",
+        "usman-organization-selection-issue",
+        "redis-performance-optimization"
+      ]
+    },
+    "platform": {
+      "type": "string",
+      "description": "Platform where the session was conducted",
+      "enum": ["staging", "production", "development", "testing"],
+      "default": "staging"
+    },
+    "startTime": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the session started",
+      "examples": ["2025-09-08T11:56:14.219Z"]
+    },
+    "endTime": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when the session ended (null for active sessions)",
+      "examples": ["2025-09-08T13:13:58.266Z", null]
+    },
+    "status": {
+      "type": "string",
+      "description": "Current status of the session",
+      "enum": ["active", "closed", "paused", "cancelled"],
+      "default": "active"
+    },
+    "objective": {
+      "type": "string",
+      "description": "Primary objective or goal of the session",
+      "minLength": 1,
+      "maxLength": 500,
+      "examples": [
+        "Investigate api-admin-core-dev microservice errors",
+        "Resolve user organization selection issue",
+        "Optimize Redis performance for high load"
+      ]
+    },
+    "files": {
+      "type": "object",
+      "description": "Session-related files and their names",
+      "required": ["rules", "notes"],
+      "properties": {
+        "rules": {
+          "type": "string",
+          "description": "Session-specific .cursorrules file",
+          "default": ".cursorrules"
+        },
+        "notes": {
+          "type": "string",
+          "description": "Session notes file",
+          "default": "session-notes.md"
+        },
+        "chatHistory": {
+          "type": "string",
+          "description": "Chat history file for session continuation",
+          "default": "chat-history.md"
+        },
+        "summary": {
+          "type": "string",
+          "description": "Auto-generated session summary file",
+          "default": "session-summary.md"
+        },
+        "artifacts": {
+          "type": "array",
+          "description": "Additional files created during the session",
+          "items": {
+            "type": "string"
+          },
+          "examples": [["debug-logs.txt", "performance-report.md", "config-backup.json"]]
+        }
+      },
+      "additionalProperties": false
+    },
+    "tags": {
+      "type": "array",
+      "description": "Tags for categorizing and searching sessions",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 50
+      },
+      "uniqueItems": true,
+      "examples": [
+        ["bug-fix", "performance", "user-issue"],
+        ["redis", "microservice", "authentication"],
+        ["urgent", "production-impact", "workflow"]
+      ]
+    },
+    "participants": {
+      "type": "array",
+      "description": "People involved in the session",
+      "items": {
+        "type": "object",
+        "required": ["name", "role"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Participant's name",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "role": {
+            "type": "string",
+            "description": "Participant's role in the session",
+            "enum": ["supporter", "user", "developer", "admin", "observer"],
+            "examples": ["supporter", "user", "developer"]
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "description": "Participant's email address"
+          },
+          "joinTime": {
+            "type": "string",
+            "format": "date-time",
+            "description": "When the participant joined the session"
+          },
+          "leaveTime": {
+            "type": ["string", "null"],
+            "format": "date-time",
+            "description": "When the participant left the session"
+          }
+        },
+        "additionalProperties": false
+      },
+      "examples": [
+        [
+          {
+            "name": "Viktor Zambo",
+            "role": "supporter",
+            "email": "viktor@beam.live",
+            "joinTime": "2025-09-08T11:56:14.219Z"
+          },
+          {
+            "name": "Usman",
+            "role": "user",
+            "joinTime": "2025-09-08T12:15:30.000Z"
+          }
+        ]
+      ]
+    },
+    "duration": {
+      "type": ["string", "null"],
+      "description": "Human-readable duration of the session",
+      "pattern": "^(\\d+h\\s*)?(\\d+m)?$",
+      "examples": ["1h 18m", "45m", "2h", "10m", null]
+    },
+    "priority": {
+      "type": "string",
+      "description": "Priority level of the session",
+      "enum": ["low", "normal", "high", "critical"],
+      "default": "normal"
+    },
+    "category": {
+      "type": "string",
+      "description": "Category of the support session",
+      "enum": [
+        "bug-investigation",
+        "performance-optimization",
+        "user-support",
+        "system-maintenance",
+        "feature-development",
+        "troubleshooting",
+        "monitoring",
+        "other"
+      ],
+      "examples": ["bug-investigation", "user-support", "performance-optimization"]
+    },
+    "outcome": {
+      "type": "object",
+      "description": "Session outcome and resolution details",
+      "properties": {
+        "resolved": {
+          "type": "boolean",
+          "description": "Whether the issue was resolved",
+          "default": false
+        },
+        "resolution": {
+          "type": "string",
+          "description": "Description of how the issue was resolved",
+          "maxLength": 1000
+        },
+        "followUpRequired": {
+          "type": "boolean",
+          "description": "Whether follow-up is required",
+          "default": false
+        },
+        "followUpTasks": {
+          "type": "array",
+          "description": "List of follow-up tasks",
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "rootCause": {
+          "type": "string",
+          "description": "Root cause of the issue",
+          "maxLength": 500
+        },
+        "preventionMeasures": {
+          "type": "array",
+          "description": "Measures to prevent similar issues",
+          "items": {
+            "type": "string",
+            "maxLength": 200
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "relatedSessions": {
+      "type": "array",
+      "description": "Related session IDs",
+      "items": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}_\\d{2}-\\d{2}-\\d{2}_[a-zA-Z0-9-_]+$"
+      },
+      "uniqueItems": true
+    },
+    "services": {
+      "type": "array",
+      "description": "Services involved in the session",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "uniqueItems": true,
+      "examples": [
+        ["api-admin-core-dev", "redis", "postgresql"],
+        ["work-admin", "org-saferide-africa", "mqtt-broker"]
+      ]
+    },
+    "environment": {
+      "type": "object",
+      "description": "Environment details where the session took place",
+      "properties": {
+        "ecosystem": {
+          "type": "string",
+          "description": "Ecosystem name",
+          "examples": ["beamdevlive", "production", "testing"]
+        },
+        "region": {
+          "type": "string",
+          "description": "Geographic region or data center",
+          "examples": ["us-east-1", "eu-west-1", "local"]
+        },
+        "version": {
+          "type": "string",
+          "description": "System or application version",
+          "examples": ["v2.1.3", "staging-2025.09.08"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "description": "Additional custom metadata",
+      "additionalProperties": true
+    }
+  },
+  "additionalProperties": false,
+  "examples": [
+    {
+      "sessionId": "2025-09-08_11-56-14_api-admin-core-dev-errors-20250908",
+      "sessionName": "api-admin-core-dev-errors-20250908",
+      "platform": "staging",
+      "startTime": "2025-09-08T11:56:14.219Z",
+      "endTime": "2025-09-08T13:13:58.266Z",
+      "status": "closed",
+      "objective": "Investigate api-admin-core-dev microservice errors during user registration",
+      "files": {
+        "rules": ".cursorrules",
+        "notes": "session-notes.md",
+        "chatHistory": "chat-history.md",
+        "summary": "session-summary.md"
+      },
+      "tags": ["bug-investigation", "microservice", "user-registration"],
+      "participants": [
+        {
+          "name": "Viktor Zambo",
+          "role": "supporter",
+          "email": "viktor@beam.live",
+          "joinTime": "2025-09-08T11:56:14.219Z"
+        }
+      ],
+      "duration": "1h 18m",
+      "priority": "high",
+      "category": "bug-investigation",
+      "outcome": {
+        "resolved": true,
+        "resolution": "Identified incorrect force1FR flag in workflow configuration",
+        "followUpRequired": false,
+        "rootCause": "Admin registration workflow invoked with force1FR: false for TypeId 2 authentication",
+        "preventionMeasures": [
+          "Add validation for force1FR flag in admin registration workflows",
+          "Update documentation for TypeId 2 authentication requirements"
+        ]
+      },
+      "services": ["api-admin-core-dev", "work-admin", "org-saferide-africa"],
+      "environment": {
+        "ecosystem": "beamdevlive",
+        "region": "staging",
+        "version": "staging-2025.09.08"
+      }
+    }
+  ]
+}
