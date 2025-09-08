@@ -104,13 +104,21 @@ ${objective}
 ### Key Actions Taken
 ${actions}
 
+### Solution Made
+<!-- Describe the solution that was implemented, what was fixed, or what was accomplished -->
+
+### Solution Required
+<!-- Describe any remaining work, pending solutions, or follow-up actions needed -->
+
+---
+
+## Technical Details
+
 ### Commands Executed
 ${commands}
 
 ### Files Modified
 ${files}
-
-## Outcome
 
 ### Notes and Observations
 ${notes}
