@@ -1,11 +1,11 @@
 {
-  "sessionId": "2025-09-08_19-37-12_test-new-summary-format",
-  "sessionName": "test-new-summary-format",
+  "sessionId": "2025-09-08_20-30-00_overall-system-health-test",
+  "sessionName": "overall-system-health-test",
   "platform": "staging",
-  "startTime": "2025-09-08T19:37:12.712Z",
+  "startTime": "2025-09-08T20:30:00.000Z",
   "endTime": null,
   "status": "active",
-  "objective": "test-new-summary-format",
+  "objective": "overall-system-health-test",
   "files": {
     "rules": ".cursorrules",
     "notes": "session-notes.md",

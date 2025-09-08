@@ -4,11 +4,10 @@ const fs = require('fs');
 const path = require('path');
 const SlackNotifier = require('../../slack-webhook/scripts/slack-notifier');
 
-const PLATFORM_NAME = process.argv[3] || 'staging'; // Default to staging if not specified
 const REPO_ROOT = path.resolve(__dirname, '../..');
-const PLATFORM_DIR = path.join(REPO_ROOT, 'platforms', PLATFORM_NAME);
-const SESSIONS_DIR = path.join(PLATFORM_DIR, 'session-logs');
-const ACTIVE_SESSION_FILE = path.join(PLATFORM_DIR, '.active-session');
+const SESSION_DIR = path.resolve(__dirname, '..');
+const SESSIONS_DIR = path.join(SESSION_DIR, 'session-logs');
+const ACTIVE_SESSION_FILE = path.join(SESSION_DIR, '.active-session');
 
 function getActiveSession() {
   if (!fs.existsSync(ACTIVE_SESSION_FILE)) {
@@ -111,6 +110,7 @@ ${actions}
 <!-- Describe any remaining work, pending solutions, or follow-up actions needed -->
 
 ---
+
 
 ## Technical Details
 

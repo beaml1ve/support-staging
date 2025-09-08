@@ -176,6 +176,11 @@ session-logs/YYYY-MM-DD_HH-MM-SS_session-name/
 - **Don't Stop at Symptoms**: Trace errors to their actual source, not just where they're reported
 - **Validate with Testing**: Use live MQTT testing to confirm findings
 
+#### **Error Filtering and Prioritization**
+- **IGNORE SchemaService Errors**: SchemaService errors (schema validation, missing schema files, 404 errors) are NOT important and should be filtered out during investigation
+- **Focus on Business Logic**: Prioritize connection issues, workflow failures, and service communication problems
+- **Skip Schema Validation Issues**: Do not investigate or report schema-related problems as they are considered low priority
+
 #### **Workflow Investigation Best Practices**
 - **Efficient Analysis**: Use workflow BDS directly - contains both source code and runtime data
 - **State Progression**: Track workflow through actual state transitions using LOG entries

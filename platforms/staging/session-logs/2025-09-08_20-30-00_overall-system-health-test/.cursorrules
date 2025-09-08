@@ -1,0 +1,22 @@
+# Session-Specific Rules
+# This file contains rules active during this support session
+# Session ID: 2025-09-08_20-30-00_overall-system-health-test
+
+## Session Context
+This session is for: overall-system-health-test - Comprehensive system health assessment
+
+## Active Rules
+- Document all actions and decisions in this session
+- Update session summary regularly
+- Use session-specific configurations as needed
+- Follow systematic troubleshooting protocol:
+  1. OS Health Check - System resources, uptime, disk space, memory usage
+  2. Platform Services Health - Redis, PostgreSQL, Apache2, Mosquitto, Tile38
+  3. Microservices Health - PM2 status, service-specific health checks
+  4. Service Chain Analysis - Complete communication flow testing
+
+## Session Files
+- `.cursorrules`: This file - session-specific rules
+- `session-summary.md`: Session documentation (auto-generated on close)
+- `chat-history.md`: Chat history for session continuation
+- `session-notes.md`: Manual notes and observations
