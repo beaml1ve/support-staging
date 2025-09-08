@@ -1,0 +1,28 @@
+{
+  "name": "@support-staging/pm2-utilities",
+  "version": "1.0.0",
+  "description": "PM2 state management and daemon restart utilities",
+  "main": "scripts/pm2-manager.js",
+  "scripts": {
+    "save-state": "node scripts/pm2-manager.js save",
+    "restore-state": "node scripts/pm2-manager.js restore",
+    "show-state": "node scripts/pm2-manager.js show",
+    "list-states": "node scripts/pm2-manager.js list",
+    "daemon-restart": "node scripts/pm2-daemon-restart.js"
+  },
+  "keywords": [
+    "pm2",
+    "state-management",
+    "daemon-restart",
+    "process-management",
+    "staging"
+  ],
+  "author": "Support Team",
+  "license": "MIT",
+  "dependencies": {
+    "pm2": "^5.3.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

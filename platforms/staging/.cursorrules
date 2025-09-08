@@ -26,17 +26,7 @@ This is an npm workspace-based monorepo for support staging environments. Each p
 - **Behavior**: Context switching automatically handles configuration symlinks and directory changes
 - **Aliases**: Load with `source scripts/context-aliases.sh` for short commands
 
-### 3. **Session Management System**
-- **REQUIRED**: Use session management for all support work
-- **Session Commands** (in platform workspace):
-  - `npm run open-session <session-name>` - Create dedicated session folder
-  - `npm run close-session` - Close session and generate documentation
-  - `npm run session-status` - Check active session
-  - `npm run list-sessions` - List all sessions
-- **Session Structure**: Each session gets isolated folder with own .cursorrules, notes, and documentation
-- **Documentation**: Auto-generated session summaries and chat history for continuation
-
-### 4. **Workspace Isolation**
+### 3. **Workspace Isolation**
 - **Platform Independence**: Each platform workspace is completely self-contained
 - **Configuration Isolation**: Platform-specific .cursorrules and MCP settings
 - **Dependency Management**: Platform-specific package.json and dependencies
@@ -145,28 +135,6 @@ set-context
 5. **Install**: npm install runs in platform workspace (unless --skip-install)
 6. **Restore**: Unset restores original configs and returns to root
 
-## Session Management System
-
-### Session Workflow:
-1. **Open Session**: `npm run open-session <session-name>` (in platform workspace)
-2. **Work in Session**: Use session-specific rules and document in session-notes.md
-3. **Close Session**: `npm run close-session` - generates comprehensive documentation
-
-### Session Documentation Structure:
-```
-session-logs/YYYY-MM-DD_HH-MM-SS_session-name/
-├── .cursorrules           # Session-specific rules (editable)
-├── session-notes.md       # Manual notes and observations
-├── chat-history.md        # Chat history for continuation
-├── session-summary.md     # Auto-generated comprehensive summary
-└── session-metadata.json # Session tracking data
-```
-
-### Session Commands (in platform workspace):
-- `npm run open-session <session-name>` - Create dedicated session folder
-- `npm run close-session` - Close session and generate documentation
-- `npm run session-status` - Check active session
-- `npm run list-sessions` - List all sessions
 
 ## Development Workflow
 

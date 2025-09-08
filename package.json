@@ -4,7 +4,8 @@
   "description": "Support staging environment monorepo with platform-specific workspaces",
   "private": true,
   "workspaces": [
-    "platforms/*"
+    "platforms/*",
+    "utilities/*"
   ],
   "scripts": {
     "preinstall": "node scripts/validate-sparse-checkout.js --quiet",
@@ -17,7 +18,25 @@
     "lint": "npm run lint --workspaces",
     "protect-rules": "node scripts/protect-rules.js protect",
     "unprotect-rules": "node scripts/protect-rules.js unprotect",
-    "rules-status": "node scripts/protect-rules.js status"
+    "rules-status": "node scripts/protect-rules.js status",
+    "open-session": "node session/scripts/open-session.js",
+    "close-session": "node session/scripts/close-session.js",
+    "session-status": "node session/scripts/session-status.js",
+    "list-sessions": "node session/scripts/list-sessions.js",
+    "pm2-save-state": "node pm2-restart/scripts/pm2-manager.js save",
+    "pm2-restore-state": "node pm2-restart/scripts/pm2-manager.js restore",
+    "pm2-show-state": "node pm2-restart/scripts/pm2-manager.js show",
+    "pm2-list-states": "node pm2-restart/scripts/pm2-manager.js list",
+    "pm2-start": "node pm2-restart/scripts/pm2-manager.js start",
+    "pm2-stop": "node pm2-restart/scripts/pm2-manager.js stop",
+    "pm2-restart": "node pm2-restart/scripts/pm2-manager.js restart",
+    "pm2-reload": "node pm2-restart/scripts/pm2-manager.js reload",
+    "pm2-info": "node pm2-restart/scripts/pm2-manager.js info",
+    "pm2-daemon-restart": "node pm2-restart/scripts/pm2-daemon-restart.js",
+    "pm2-test": "node pm2-restart/scripts/pm2-test-runner.js"
+  },
+  "dependencies": {
+    "pm2": "^5.4.3"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
