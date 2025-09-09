@@ -1,0 +1,23 @@
+{
+  "validation_timestamp": "2025-09-09T07:31:55.882Z",
+  "firebase_auth_status": "success",
+  "sample_size": 5,
+  "total_tokens": 72,
+  "sample_results": {
+    "valid": 0,
+    "invalid": 1,
+    "validation_rate": 0
+  },
+  "extrapolated_results": {
+    "estimated_valid": 0,
+    "estimated_invalid": 72,
+    "estimated_validation_rate": 0
+  },
+  "detailed_results": [
+    {
+      "token": "eL0i7IZCSreGoqe4Xom9Ug:APA91bGHSKdVYLXgiiImeB0VbNi...",
+      "valid": false,
+      "error": "app/invalid-credential"
+    }
+  ]
+}

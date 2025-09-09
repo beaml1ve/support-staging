@@ -29,3 +29,4 @@ temp/
 # Node.js
 node_modules/
 package-lock.json
+platforms/staging/session-logs/*/temp-page-messaging/

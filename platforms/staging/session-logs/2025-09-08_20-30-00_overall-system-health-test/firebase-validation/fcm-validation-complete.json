@@ -1,0 +1,90 @@
+{
+  "validation_timestamp": "2025-09-09T07:33:11.108Z",
+  "firebase_config": {
+    "project_id": "beam-live-passenger",
+    "client_email": "firebase-adminsdk-fffpq@beam-live-passenger.iam.gserviceaccount.com",
+    "auth_status": "success"
+  },
+  "token_validation": {
+    "total_tokens": 72,
+    "valid_tokens": 21,
+    "invalid_tokens": 51,
+    "validation_rate": 29.2
+  },
+  "error_breakdown": {
+    "messaging/registration-token-not-registered": 51
+  },
+  "notification_impact": {
+    "page_members": 23,
+    "members_to_notify": 22,
+    "members_with_tokens": 8,
+    "valid_tokens": 21,
+    "delivery_rate": 29.2,
+    "estimated_member_coverage": 3
+  },
+  "valid_tokens": [
+    "fgFhvYaawyGJ7YKp3yCkjl:APA91bFYyNJCwwRM2iSZNPSeAa2iVwehnzjoKWe35ZLO5EToWok54gu94tZMpI_nthx_zBjsT7khtX9hxsgZJFGynORv5r6oTz4M6tNahV8l8l-jRA6cpnrEwrwbl6NvfqFxwmhgFNLC",
+    "eMbGZLRLSF8aIItmeyxtoI:APA91bFNf68YYMth-2UlQO3fsG8BvFj7GEGWF7xspnAZPe_hXoMBb52ofgJ8rtCM5dTtfhUyI0VSOrhOhTkUxFAwGewI1gJsKF3thHJfZBXX19yG-u5pZxYIC2cHq0hw6mVGd14xZaXf",
+    "fhnsVNWImfTmUbRSLzqaLz:APA91bF5kQr4Z7h843AglD74BVT0I4uGP4p5sZZD58Y8qGCoRqPinldI9ffwTFm4fCXJB8feL5_1v-tB9NDswUoP5YkE8HurkN9LGksringM3m22zxJwlHZLaKsTYGF1PdP8SR7XqjWT",
+    "eMbGZLRLSF8aIItmeyxtoI:APA91bFNf68YYMth-2UlQO3fsG8BvFj7GEGWF7xspnAZPe_hXoMBb52ofgJ8rtCM5dTtfhUyI0VSOrhOhTkUxFAwGewI1gJsKF3thHJfZBXX19yG-u5pZxYIC2cHq0hw6mVGd14xZaXf",
+    "dYt61TxIXbTFJGFs1izKO_:APA91bFP3t1JlgkmfQWTXJ7osLUKOlhcQvl_DmunwXPMAyXUudPS6ACppsS7ouFWxEwJAW6YbTiAGeQZ8_qWCKlE8jdhc__ruJlq8sUzn5bPM7fW20yzAbppJNbS_4vMIIC0Qz99XLpE",
+    "eMbGZLRLSF8aIItmeyxtoI:APA91bFNf68YYMth-2UlQO3fsG8BvFj7GEGWF7xspnAZPe_hXoMBb52ofgJ8rtCM5dTtfhUyI0VSOrhOhTkUxFAwGewI1gJsKF3thHJfZBXX19yG-u5pZxYIC2cHq0hw6mVGd14xZaXf",
+    "cSOfGJqQ--tOqD4dGeVr0i:APA91bF4iLp1G_jaBrIKgnwvOx6cGsi-S0KTFWnT0ZD_1rag9Dat8YKtheBAXlMeO6XjTIb4WMCNECORypexhgUD6FCK0Hk8mLSVw6Rer6vEP8bKfZ4FbAgQm4zQze-vwl_d_xUFYLDb",
+    "dtL7eW9CIbaRWdcFexjiKw:APA91bFlK2o6Kn0Y5t6YwiFRlH6APwHD80zG20pm4nPvxznPXeuormQqazJE0dnB57x6iD8G63jy3CW5OowwscqZDu0cb1WYGfokY8nkk7NUqzt6ZGBEsCaZl4h0FRKJYvgcr2WU7kXf",
+    "cLfUhX7YjyGdv3FFHu0HA-:APA91bFwvU6PTnYHdRZwgtxrOVcsmTuF7wk2pFmpUXyiC8TsVuMmqyEM6w55Vq41K1lmSFaFU3YaebkwlW21WireMkyU1T3B1pQ1nNgEfEEZfzGZRI2IDyZTKy8ijfjDWXTtQlLW9QyV",
+    "ens5zAEO881_28mdTmKAXo:APA91bFr1Gl7tBKnb9Y4cW7_AHGcmdKNImA-6bWT76Uo3wEIEZ_0Ek-zp1P-Wd0gwS6A5vJpHe4RBsSjHC2QtQbynZoyDC9yOtS_-GZmGUNnGc--01LhQyflWNxSYzTcNJO6WyaEArv0",
+    "eAeWMQfkngcgIsd_OZxb9R:APA91bE15tRhzkYM1I0rluJu4iPWRu2c_FB1ykDvWl-swD2K7lomGgUIuBonn8GI5l7IZCLb7-7SaRd2YzQqPJv__NsbSNwsQwD5AMojQcmAbzhmRDpWxHqypMxRz7j-FmtckzhMhnS_",
+    "f63-KIVyxtom1aouIoabT4:APA91bGbxUpVdbbuKa6vfKE_b_FhYAtLT3Uo4wfDKoXZoa9_uzmtwwtDW6VBcybgTihhxqwdMDjifQJhiXAoi28htYjS1HEvoswYD2geOAXYU2ALWwcI-WQtkYitvcaDFfTx3KfMjV0j",
+    "fLR2oTEFsiXZFc1KXB8Ese:APA91bGAi4RhUzd3sW3iFdLxooDQY355Hmzqowo6pGqceqnbUh64kCICE8R_I6cg4U6G7vlA3kKjSbIhhQLLEehjjZUUMKPLUVnhl057hlsPM0uXDcV3z_IWxc96zeO0rHmvAyI2jTeC",
+    "fQ1ghBCzdkm4v6JRWqFES2:APA91bGqUaoyo92-z0eOkKmSeuO-AKrMEBG6mKunYylaiqjb20ASAfiN1pvWKpiCHNRr1MyhRE_T7NRAHBaeJW-dLyzN8Z7RYSh7Q1n56Da3Lacc_Zu0qhM",
+    "d5E_jB_AkAMANsEXDgoDdd:APA91bEaTmWgw86RnEltyCshe_nj58Z1mepY8NzCvyGDoddYM4UE-rhT2VRHKK1o5JzvCDf53MI8G5oHNEHaQoKYdOYKIW17P2D0v7j9mRaNWESMmgRgJmeJ-xAUOZ1UrnZSzWjFDzVK",
+    "fUGhqiqZ9GJ1i7hNMntxmW:APA91bGpRRdmrIItIPLz4XCa8xoQ5ruZfXGXTljHtJrIsd9Mbkn6T9Qx_bF2btAC8ZKRWpA1MfWhBV_O-dnH_nEnTvZw1SBRT9xxB_MotOPX7kd6mXX_wLY",
+    "dI_drhTGR-6NcmWDxxo3vb:APA91bHzxb2HLxKpZtTfrHnYWxSQyHpdlVyP7QX9Zh1qliTH_13eYwxm5ZLCVQaAmCIaBJZpNYqn6CnpoJ_cJ8iscb9BSiYDp0wJ8qpdBeTTJEOkVUfnudNvzw0dGZ8MCXzmi-9GxM5S",
+    "eDImlwVr7ECckI7Bzqn3yb:APA91bHyUoa_Xrl5hKBbQ6zCvE9EpAnrdZMPkY2hgiYPqT4cyt1W9XiqNr3FcViOSD78NXRfeMqFSXwM8iL-CxVRKi3qarQ7D6Ffh01hGUw3lS2um10D7o8",
+    "d1iBhFeyRcrPf26SKDiaBa:APA91bECKTFFAR7j2GOAoqP4O-Gdt3jaU33Sz7578S04MbvAmnK8A2h5HVBX2ZQh1CG7ZB2A-o6JzWuPT-XKoILwKx6z4kArw8FFhBXg6uI3MYprZ3h2n2g",
+    "dxd69O7D6TmkaQ2ctVuPOB:APA91bEKAxhYjUCkquxcRjy8ISi9Li9JySaoAmLBikk7IXyLdrvTfA7p8NXBqIvjxMyrnVHh3Qvd17JKEF_IU5Omjvi-x0Ee-p7cwvXUSN-Ra73CBX0qhh4",
+    "dOooKXCiTU2JlAc7E8mzKx:APA91bFqfSiRJPna5HeRuAIcVZUDnXLSrMbY7m3Cbzoj8RAY1V9e4qq_avVTgfiSweOPmBk3fGQRgjw7Zmt8eWwPp29FPBmnCKI6SXz9cNLOrcuKeocC1fw"
+  ],
+  "invalid_tokens": [
+    {
+      "token": "eL0i7IZCSreGoqe4Xom9Ug:APA91bGHSKdVYLXgiiImeB0VbNi...",
+      "error": "messaging/registration-token-not-registered"
+    },
+    {
+      "token": "eQuxqqKrRA66I7xVII0Uco:APA91bGRIj-2nunBp_XLEJ-pAsq...",
+      "error": "messaging/registration-token-not-registered"
+    },
+    {
+      "token": "ePKFBUVVTHSawU-8sdrDRW:APA91bFEEypc3ULQ27HczwkIsft...",
+      "error": "messaging/registration-token-not-registered"
+    },
+    {
+      "token": "ebsRATRyRj6n85eCPHVqiU:APA91bE4VHAQHy6xEP6Ib-GH9yx...",
+      "error": "messaging/registration-token-not-registered"
+    },
+    {
+      "token": "dP05qEUxQ-WwCmZOEq6Rtf:APA91bFPmWchdTqHvN_S0F3w865...",
+      "error": "messaging/registration-token-not-registered"
+    },
+    {
+      "token": "fY1JPXhiREKMmaXg74rxOf:APA91bGXn2T8eUsCADcNsyaweLR...",
+      "error": "messaging/registration-token-not-registered"
+    },
+    {
+      "token": "fj3zIwZJS2qmfmymV4-3Pn:APA91bH_ItvYYwdzRQLuF7aKwUB...",
+      "error": "messaging/registration-token-not-registered"
+    },
+    {
+      "token": "d7JUKW-FQQWIGN35lwl3rz:APA91bF2LFUrXBzm96mCXHL30hR...",
+      "error": "messaging/registration-token-not-registered"
+    },
+    {
+      "token": "fzOLtBaMQZqe8KI5j5qTYI:APA91bHvgwRg6RIXf2u1PvXmtSi...",
+      "error": "messaging/registration-token-not-registered"
+    },
+    {
+      "token": "cRtNycmORJOmUfrVE4kmtF:APA91bEErxhwK4MtWWlX-hfw6AB...",
+      "error": "messaging/registration-token-not-registered"
+    }
+  ]
+}

@@ -292,6 +292,217 @@ rm .active-session
 - **Backup System**: Original configurations are always preserved and restorable
 - **Structured Documentation**: All support work is automatically documented with timestamps and metadata
 
+## Firebase FCM Token Management
+
+### **Firebase Configuration and Credentials**
+
+#### **Environment Configuration (beamdevlive ecosystem)**
+- **Project ID**: `beam-live-passenger`
+- **Client Email**: `firebase-adminsdk-fffpq@beam-live-passenger.iam.gserviceaccount.com`
+- **Private Key Source**: `/var/www/beamdevlive/notification-service/.env`
+- **Database URL**: `https://beamlive-ff2d7.firebaseio.com`
+
+#### **FCM Token Storage in BDS**
+- **Correct Index**: `beamdevlive:device:token`
+- **Search Tag**: `@fcmTokenUserId:{userId}`
+- **Token Path**: `$.nonpersistent.static.live.fcmToken.token`
+- **Wrong Index**: `beamdevlive:deviceUdidIndex` (commonly misused by services)
+
+#### **Firebase Credentials Extraction Script**
+```bash
+# Extract and format Firebase private key from notification-service
+cat > extract_firebase_key.sh << 'EOF'
+#!/bin/bash
+echo "=== Extracting Firebase Private Key ==="
+key_line=$(grep "FIREBASE_ADMIN_SERVICE_ACCOUNT_PRIVATE_KEY" /var/www/beamdevlive/notification-service/.env)
+private_key_raw=$(echo "$key_line" | cut -d'=' -f2-)
+echo "$private_key_raw" | \
+  sed 's/-----BEGINPRIVATEKEY-----/-----BEGIN PRIVATE KEY-----/g' | \
+  sed 's/-----ENDPRIVATEKEY-----/-----END PRIVATE KEY-----/g' | \
+  sed 's/\\n/\n/g' > formatted_key.txt
+echo "✅ Key saved to: formatted_key.txt"
+EOF
+chmod +x extract_firebase_key.sh
+```
+
+### **FCM Token Testing and Validation Tools**
+
+#### **Complete Token Validation Script Template**
+```javascript
+const admin = require('firebase-admin');
+const fs = require('fs');
+
+async function validateFCMTokens() {
+  try {
+    // Load properly formatted Firebase credentials
+    const privateKey = fs.readFileSync('formatted_key.txt', 'utf8');
+    const firebaseConfig = {
+      projectId: "beam-live-passenger",
+      clientEmail: "firebase-adminsdk-fffpq@beam-live-passenger.iam.gserviceaccount.com",
+      privateKey: privateKey
+    };
+
+    // Initialize Firebase Admin SDK
+    if (admin.apps.length > 0) {
+      await Promise.all(admin.apps.map(app => app.delete()));
+    }
+    admin.initializeApp({
+      credential: admin.credential.cert(firebaseConfig)
+    });
+
+    // Load FCM tokens from BDS or file
+    const tokens = [/* token array */];
+    
+    // Batch validation with error handling
+    const batchSize = 10;
+    let validTokens = 0;
+    let invalidTokens = 0;
+    const errorBreakdown = {};
+    
+    for (let i = 0; i < tokens.length; i += batchSize) {
+      const batch = tokens.slice(i, i + batchSize);
+      
+      for (const token of batch) {
+        try {
+          await admin.messaging().send({
+            token: token,
+            notification: { title: 'Test', body: 'Validation' },
+            data: { test: 'validation' }
+          }, true); // dryRun = true
+          
+          validTokens++;
+        } catch (error) {
+          invalidTokens++;
+          const errorCode = error.code || 'unknown';
+          errorBreakdown[errorCode] = (errorBreakdown[errorCode] || 0) + 1;
+        }
+      }
+    }
+    
+    // Save results
+    const results = {
+      validation_timestamp: new Date().toISOString(),
+      total_tokens: tokens.length,
+      valid_tokens: validTokens,
+      invalid_tokens: invalidTokens,
+      validation_rate: ((validTokens/tokens.length)*100).toFixed(1) + '%',
+      error_breakdown: errorBreakdown
+    };
+    
+    fs.writeFileSync('fcm-validation-results.json', JSON.stringify(results, null, 2));
+    console.log(`✅ Validation complete: ${validTokens}/${tokens.length} valid (${results.validation_rate})`);
+    
+  } catch (error) {
+    console.error('❌ Validation failed:', error.message);
+  }
+}
+
+validateFCMTokens();
+```
+
+#### **FCM Token Collection from BDS Script Template**
+```bash
+# Collect FCM tokens for specific users from correct BDS index
+collect_user_fcm_tokens() {
+  local user_ids=("$@")
+  
+  echo "{"
+  echo "  \"collection_timestamp\": \"$(date -Iseconds)\","
+  echo "  \"user_tokens\": ["
+  
+  local first=true
+  for userId in "${user_ids[@]}"; do
+    if [ "$first" = false ]; then echo ","; fi
+    first=false
+    
+    echo -n "    {\"user_id\": \"$userId\", \"fcm_tokens\": ["
+    
+    # Query correct BDS index for FCM tokens
+    device_objects=$(redis-cli -h localhost -p 6379 FT.SEARCH "beamdevlive:device:token" "@fcmTokenUserId:{$userId}" LIMIT 0 100 2>/dev/null | grep "beamdevlive:device:")
+    
+    local token_first=true
+    if [ -n "$device_objects" ]; then
+      while IFS= read -r device_key; do
+        if [ -n "$device_key" ]; then
+          token=$(redis-cli -h localhost -p 6379 JSON.GET "$device_key" "$.nonpersistent.static.live.fcmToken.token" 2>/dev/null)
+          clean_token=$(echo "$token" | sed 's/^\[\"\(.*\)\"\]$/\1/' | sed 's/^"\(.*\)"$/\1/')
+          
+          if [ -n "$clean_token" ] && [ "$clean_token" != "null" ] && [ "$clean_token" != "[]" ]; then
+            if [ "$token_first" = false ]; then echo -n ", "; fi
+            token_first=false
+            echo -n "\"$clean_token\""
+          fi
+        fi
+      done <<< "$device_objects"
+    fi
+    
+    echo -n "]}"
+  done
+  
+  echo ""
+  echo "  ]"
+  echo "}"
+}
+
+# Usage: collect_user_fcm_tokens "102563" "111557" "9"
+```
+
+#### **Firebase Authentication Debug Script Template**
+```javascript
+// Debug Firebase configuration and test authentication
+async function debugFirebaseAuth() {
+  try {
+    // Extract Firebase config from notification-service .env
+    const envContent = fs.readFileSync('/var/www/beamdevlive/notification-service/.env', 'utf8');
+    
+    const projectIdMatch = envContent.match(/FIREBASE_ADMIN_SERVICE_ACCOUNT_PROJECT_ID=(.+)/);
+    const clientEmailMatch = envContent.match(/FIREBASE_ADMIN_SERVICE_ACCOUNT_CLIENT_EMAIL=(.+)/);
+    
+    const projectId = projectIdMatch ? projectIdMatch[1].trim() : 'beam-live-passenger';
+    const clientEmail = clientEmailMatch ? clientEmailMatch[1].trim() : 'firebase-adminsdk-fffpq@beam-live-passenger.iam.gserviceaccount.com';
+    
+    console.log('Firebase Config:');
+    console.log('Project ID:', projectId);
+    console.log('Client Email:', clientEmail);
+    
+    // Test authentication with extracted config
+    const privateKey = fs.readFileSync('formatted_key.txt', 'utf8');
+    const config = { projectId, clientEmail, privateKey };
+    
+    admin.initializeApp({ credential: admin.credential.cert(config) });
+    console.log('✅ Firebase authentication successful');
+    
+    // Test messaging service
+    const messaging = admin.messaging();
+    console.log('✅ Messaging service accessible');
+    
+  } catch (error) {
+    console.error('❌ Authentication failed:', error.message);
+  }
+}
+```
+
+### **FCM Token Management Best Practices**
+
+#### **Token Validation Workflow**
+1. **Extract Credentials**: Use `extract_firebase_key.sh` to get properly formatted private key
+2. **Collect Tokens**: Query `beamdevlive:device:token` index with `@fcmTokenUserId` tag
+3. **Validate Tokens**: Use Firebase Admin SDK with dry run to test token validity
+4. **Error Analysis**: Categorize errors (`registration-token-not-registered`, `invalid-registration-token`)
+5. **Cleanup**: Remove invalid tokens from BDS to improve performance
+
+#### **Common FCM Token Issues**
+- **Wrong Index**: Services querying `beamdevlive:deviceUdidIndex` instead of `beamdevlive:device:token`
+- **Invalid Tokens**: 70%+ of stored tokens may be unregistered with FCM
+- **Missing Tokens**: Only ~35% of users typically have FCM tokens available
+- **Authentication**: Wrong Firebase project configuration (beam-dev-live vs beam-live-passenger)
+
+#### **Performance Optimization**
+- **Token Caching**: Cache valid tokens to reduce Firebase API calls
+- **Batch Validation**: Process tokens in batches of 10-100 to avoid rate limits
+- **Regular Cleanup**: Remove invalid tokens weekly to reduce BDS storage
+- **Monitoring**: Track token validity rates and delivery success metrics
+
 ## Project Context
 
 This monorepo supports multiple staging environments with platform-specific infrastructure, services, and troubleshooting procedures. Each platform workspace contains complete documentation and tools for that specific environment.

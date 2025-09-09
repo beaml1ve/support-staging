@@ -1,0 +1,42 @@
+{
+  "validation_timestamp": "2025-09-09T07:27:57.185Z",
+  "sample_size": 5,
+  "total_tokens": 72,
+  "sample_results": {
+    "valid": 0,
+    "invalid": 5,
+    "validation_rate": 0
+  },
+  "extrapolated_results": {
+    "estimated_valid": 0,
+    "estimated_invalid": 72,
+    "estimated_validation_rate": 0
+  },
+  "detailed_results": [
+    {
+      "token": "eL0i7IZCSreGoqe4Xom9Ug:APA91bGHSKdVYLXgiiImeB0VbNi...",
+      "valid": false,
+      "error": "app/invalid-credential"
+    },
+    {
+      "token": "eQuxqqKrRA66I7xVII0Uco:APA91bGRIj-2nunBp_XLEJ-pAsq...",
+      "valid": false,
+      "error": "app/invalid-credential"
+    },
+    {
+      "token": "ePKFBUVVTHSawU-8sdrDRW:APA91bFEEypc3ULQ27HczwkIsft...",
+      "valid": false,
+      "error": "app/invalid-credential"
+    },
+    {
+      "token": "ebsRATRyRj6n85eCPHVqiU:APA91bE4VHAQHy6xEP6Ib-GH9yx...",
+      "valid": false,
+      "error": "app/invalid-credential"
+    },
+    {
+      "token": "dP05qEUxQ-WwCmZOEq6Rtf:APA91bFPmWchdTqHvN_S0F3w865...",
+      "valid": false,
+      "error": "app/invalid-credential"
+    }
+  ]
+}
