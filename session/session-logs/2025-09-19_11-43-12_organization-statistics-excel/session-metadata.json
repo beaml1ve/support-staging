@@ -1,0 +1,17 @@
+{
+  "sessionId": "2025-09-19_11-43-12_organization-statistics-excel",
+  "sessionName": "organization-statistics-excel",
+  "platform": "staging",
+  "startTime": "2025-09-19T11:43:12.958Z",
+  "endTime": null,
+  "status": "active",
+  "objective": "organization-statistics-excel",
+  "files": {
+    "rules": ".cursorrules",
+    "notes": "session-notes.md",
+    "chatHistory": "chat-history.md",
+    "summary": "session-summary.md"
+  },
+  "tags": [],
+  "participants": []
+}

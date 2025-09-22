@@ -1,3 +1,8 @@
+# Session-Specific Rules
+# This file contains rules active during this support session
+# Original platform rules copied and can be modified for this session context
+# Session ID: 2025-09-20_08-12-41_organization-statistics-excel
+
 # Support Staging Monorepo Rules
 
 ## Monorepo Structure
@@ -698,98 +703,6 @@ ORDER BY cr.\"groupId\";"
 - **Handle missing parents**: Some organizations may not have parent relationships
 - **Group analysis**: Understand the group structure before determining parent-child relationships
 - **Performance**: Use proper indexing on groupId and cudbId for large datasets
-
-## Organization Statistics Tools
-
-### **Node.js Organization Statistics Package**
-
-#### **Package Location and Structure**
-- **Location**: `platforms/staging/workspaces/organization-stats/`
-- **Type**: Complete Node.js package with CLI interface
-- **Dependencies**: redis, exceljs, pg, chalk, commander
-- **Purpose**: Generate comprehensive organization statistics Excel tables
-
-#### **Package Components**
-1. **Redis Client** (`src/redis-client.js`):
-   - BDS query implementation with proper tag escaping
-   - Organization extraction from `beamdevlive:config:type` index
-   - User counting: active users, non-beamer users, registered users
-   - Object counting: pages, messages, media using BDS partitions
-   - Full Redis connection management and error handling
-
-2. **PostgreSQL Client** (`src/postgres-client.js`):
-   - Organization hierarchy queries using cudb-relation and cudb tables
-   - Parent organization identification via groupId relationships
-   - Database connection management with proper authentication
-   - Hierarchy map building for Excel column generation
-
-3. **Excel Generator** (`src/excel-generator.js`):
-   - Complete Excel file generation with proper formatting
-   - Hierarchy column creation (Level_0 through Level_4)
-   - Client-side sorting by hierarchy levels
-   - Summary statistics and top organizations analysis
-   - Automatic column width adjustment and styling
-
-4. **Organization Stats Service** (`src/organization-stats.js`):
-   - Main orchestration service coordinating all components
-   - Parallel data extraction and processing
-   - Error handling and fallback data for failed organizations
-   - Complete workflow management from extraction to Excel generation
-
-5. **CLI Interface** (`src/index.js`):
-   - Command-line interface using commander
-   - Multiple operation modes: generate, test, help
-   - Comprehensive error handling and user feedback
-   - Integration with all service components
-
-#### **Usage Commands**
-```bash
-# Navigate to package directory
-cd platforms/staging/workspaces/organization-stats/
-
-# Install dependencies
-npm install
-
-# Generate complete organization statistics table
-npm run generate
-
-# Test connections and basic functionality
-npm run test
-
-# Run with custom output directory
-node src/index.js generate --output-dir /path/to/output
-
-# Get help
-node src/index.js --help
-```
-
-#### **Key Features**
-- **Complete Data Extraction**: Organizations, users, objects, hierarchy
-- **Redis BDS Integration**: Proper tag escaping and query optimization
-- **PostgreSQL Hierarchy**: Multi-level organization hierarchy analysis
-- **Excel Generation**: Professional formatting with sortable hierarchy columns
-- **Error Handling**: Comprehensive error handling with fallback data
-- **Performance**: Parallel processing for efficient data extraction
-- **CLI Interface**: User-friendly command-line interface
-
-#### **Data Output**
-- **Excel File**: `organizations_complete_table_YYYYMMDD_HHMMSS.xlsx`
-- **Columns**: Level_0 through Level_4 (hierarchy), Organization, ServiceId, Status, Type, ActiveUsers, NonBeamerUsers, RegisteredUsers, Pages, Messages, Media, ParentServiceId
-- **Summary Sheet**: Total statistics and top organizations by users
-- **Sorting**: Pre-sorted by hierarchy levels for optimal analysis
-
-#### **Technical Implementation**
-- **Redis Queries**: Uses FT.SEARCH with LIMIT 0 0 for efficient counting
-- **PostgreSQL Queries**: Proper JOIN operations on cudb-relation and cudb tables
-- **Excel Generation**: Client-side sorting and formatting with exceljs
-- **Error Recovery**: Graceful handling of failed organizations with empty data
-- **Memory Management**: Efficient data processing without memory leaks
-
-#### **Integration with Platform**
-- **Session Management**: Can be used within platform sessions
-- **MCP Settings**: Uses platform-specific Redis and PostgreSQL connections
-- **Documentation**: Generates comprehensive session documentation
-- **File Management**: Automatic cleanup of old Excel files
 
 ## Project Context
 

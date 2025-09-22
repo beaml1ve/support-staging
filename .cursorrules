@@ -204,7 +204,39 @@ session-logs/YYYY-MM-DD_HH-MM-SS_session-name/
 - **Investigation Trap**: Don't assume service logic bug - verify authentication parameters first
 - **Security Validation**: Services correctly enforcing 2FA requirements are working properly
 
-### 7. **Workspace Isolation**
+### 7. **BDS (Beam Data Store) Object Structure and Tagging**
+
+#### **BDS Object Structure**
+- **Partition Array**: All BDS objects contain a `partition` array that contains tags
+- **Tag Format**: Tags are strings in the format "type:value" (e.g., "service:cudb", "status:active", "org:beamdevlive")
+- **Organization Membership**: Objects belonging to an organization get tagged with "org:<serviceId>" (e.g., "org:cudb-root", "org:cudb-client")
+
+#### **BDS Index Structure**
+- **partitionSegments**: Separates tags using ":" separator to create an array (of arrays), then flattens the result
+  - Enables selection by type and value separately
+  - Example: Tag "org:cudb-root" becomes ["org", "cudb-root"] in partitionSegments
+  - Allows queries like: `@type:{org}` or `@value:{cudb-root}`
+- **partitions**: Contains the full tag string and is a TAG type index segment
+  - Preserves complete tag strings for exact matching
+  - Example: Tag "org:cudb-root" remains "org:cudb-root" in partitions
+  - Allows queries like: `@partitions:{"org\\:cudb-root"}`
+
+#### **BDS Query Patterns**
+- **Organization Object Selection**: To select objects tagged to an organization, use: `@partitions:{"org:<serviceId>"}` (properly escaped)
+- **Special Character Escaping**: Colons and other special characters must be escaped with backslashes in queries
+- **Efficient Querying**: Uses the partitions TAG type index segment for fast exact tag matching
+
+#### **Page Object Types**
+- **Page BDS objects** have `persistent.static.metadata.type` property with valid types:
+  1. "ai" - AI-related pages
+  2. "assist" - Assistant pages  
+  3. "broadcast" - Broadcast pages
+  4. "event" - Event pages
+  5. "friend" - Friend-related pages
+  6. "iot" - IoT (Internet of Things) pages
+  7. "regular" - Regular pages
+
+### 8. **Workspace Isolation**
 - **Platform Independence**: Each platform workspace is completely self-contained
 - **Configuration Isolation**: Platform-specific .cursorrules and MCP settings
 - **Dependency Management**: Platform-specific package.json and dependencies

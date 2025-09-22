@@ -1,0 +1,16 @@
+# Session-Specific Rules
+# Session ID: 2025-09-19_11-43-12_organization-statistics-excel
+
+## Session Context
+This session is for: organization-statistics-excel
+
+## Active Rules
+- Document all actions and decisions in this session
+- Update session summary regularly
+- Use session-specific configurations as needed
+
+## Session Files
+- `.cursorrules`: This file - session-specific rules
+- `session-summary.md`: Session documentation (auto-generated on close)
+- `chat-history.md`: Chat history for session continuation
+- `session-notes.md`: Manual notes and observations

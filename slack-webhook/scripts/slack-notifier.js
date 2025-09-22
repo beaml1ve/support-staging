@@ -219,7 +219,8 @@ class SlackNotifier {
       duration,
       platform,
       sessionFolder,
-      fullSummaryContent
+      fullSummaryContent,
+      excelFiles
     } = sessionData;
 
     // Use the session folder name directly for the title
@@ -264,11 +265,43 @@ class SlackNotifier {
           "type": "mrkdwn",
           "text": `*📁 Session Documentation:*\n\`${sessionFolder}\``
         }
-      },
-      {
-        "type": "divider"
       }
     ];
+
+    // Add Excel files information if available
+    if (excelFiles && excelFiles.length > 0) {
+      const latestFile = excelFiles[0]; // Already sorted by modification time, newest first
+      const fileSizeKB = Math.round(latestFile.size / 1024);
+      const fileDate = latestFile.modified.toISOString().split('T')[0];
+      
+      blocks.push({
+        "type": "section",
+        "text": {
+          "type": "mrkdwn",
+          "text": `*📊 Latest Excel Table:*\n\`${latestFile.name}\`\n*Size:* ${fileSizeKB} KB | *Modified:* ${fileDate}\n*Path:* \`${latestFile.path}\``
+        }
+      });
+      
+      // Add information about all Excel files if there are multiple
+      if (excelFiles.length > 1) {
+        const fileList = excelFiles.map(file => {
+          const sizeKB = Math.round(file.size / 1024);
+          return `• \`${file.name}\` (${sizeKB} KB)`;
+        }).join('\n');
+        
+        blocks.push({
+          "type": "section",
+          "text": {
+            "type": "mrkdwn",
+            "text": `*📋 All Excel Files (${excelFiles.length}):*\n${fileList}`
+          }
+        });
+      }
+    }
+
+    blocks.push({
+      "type": "divider"
+    });
 
     // Split content into chunks to respect Slack's 3000 character limit per block
     const contentChunks = this.splitContentIntoChunks(slackFormattedContent, 2800);
@@ -502,6 +535,27 @@ class SlackNotifier {
   static extractSessionData(sessionFolder, metadata, notesContent) {
     const sessionId = path.basename(sessionFolder);
     
+    // Find Excel files in the session folder
+    const excelFiles = [];
+    try {
+      const files = fs.readdirSync(sessionFolder);
+      const xlsxFiles = files.filter(file => file.endsWith('.xlsx'));
+      xlsxFiles.forEach(file => {
+        const filePath = path.join(sessionFolder, file);
+        const stats = fs.statSync(filePath);
+        excelFiles.push({
+          name: file,
+          path: filePath,
+          size: stats.size,
+          modified: stats.mtime
+        });
+      });
+      // Sort by modification time, newest first
+      excelFiles.sort((a, b) => b.modified - a.modified);
+    } catch (error) {
+      console.warn('⚠️  Failed to read session folder for Excel files:', error.message);
+    }
+    
     // Try to read the full session-summary.md file
     const summaryFile = path.join(sessionFolder, 'session-summary.md');
     let fullSummaryContent = '';
@@ -578,7 +632,8 @@ ${nextSteps}
       duration: metadata?.duration,
       platform: metadata?.platform,
       sessionFolder,
-      fullSummaryContent
+      fullSummaryContent,
+      excelFiles
     };
   }
 }

@@ -1,7 +1,7 @@
 {
   "target": "staging",
   "rulesFile": "/home/viktor/support-staging/platforms/staging/.cursorrules",
-  "protectedAt": "2025-09-09T07:49:18.238Z",
+  "protectedAt": "2025-09-20T07:33:43.227Z",
   "originalPermissions": 33204,
-  "checksum": "658d65c54b35fa2cdc4abfde6933728276885903ddd96ae9dfc772772e752cfd"
+  "checksum": "02e24ce007538a6b98639a73ff9cfb7f219416f3659b4ec6bce1e323a3d6dc77"
 }
